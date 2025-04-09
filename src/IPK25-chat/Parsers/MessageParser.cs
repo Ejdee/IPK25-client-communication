@@ -82,7 +82,7 @@ public class MessageParser
         }
         
         // Print the parsed message for debugging
-        messageModel.Print();
+        //messageModel.Print();
         return messageModel;
     }
 }

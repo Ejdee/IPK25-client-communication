@@ -28,7 +28,7 @@ public class ProtocolPayloadBuilder
             case MessageType.JOIN:
                 return CreatePayload(message.MessageType, message.Parameters["channelID"], _displayName);
             case MessageType.MSG:
-                return CreatePayload(message.MessageType, message.Content);
+                return CreatePayload(message.MessageType, _displayName, message.Content);
             default:
                 throw new NotSupportedException();
         }

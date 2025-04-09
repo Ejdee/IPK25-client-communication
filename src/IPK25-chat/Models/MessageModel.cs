@@ -32,8 +32,6 @@ public class MessageModel
         _messageType = messageType;
         _content = content;
     }
-
-     
     
     public void Print()
     {
