@@ -24,11 +24,11 @@ public class UdpTransfer : IClient
     {
         var id = $"{payload[1]}{payload[2]}";
         _confirmationTracker.NewConfirmationWait(id);
+        _udpClient.Client.ReceiveTimeout = _retryDelay;
         
         for (int attempt = 0; attempt < _retryCount; attempt++)
         {
             _udpClient.Send(payload, payload.Length, _remoteEndPoint);
-            _udpClient.Client.ReceiveTimeout = _retryDelay;
 
             if (_confirmationTracker.WaitForConfirmation(id, _retryDelay))
             {

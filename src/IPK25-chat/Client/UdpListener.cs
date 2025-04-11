@@ -40,6 +40,14 @@ public class UdpListener
                   _udpTransfer.SetRemoteEndPoint(remote);
                }
 
+               // if the message is confirmed, we must not put the id in the set
+               // because it is id of the message this program sent
+               if (data[0] == (byte)PayloadType.CONFIRM)
+               {
+                  OnMessageArrival?.Invoke(true, data);
+                  continue;
+               }
+               
                var id = GetMessageId(data);
                if (_processedMessageIds.Add(id))
                {
