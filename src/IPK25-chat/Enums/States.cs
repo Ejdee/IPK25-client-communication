@@ -1,4 +1,4 @@
-namespace IPK25_chat.Core;
+namespace IPK25_chat.Enums;
 
 public enum States
 {

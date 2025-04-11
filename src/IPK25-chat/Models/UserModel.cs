@@ -1,6 +1,6 @@
 namespace IPK25_chat.Models;
 
-public class User
+public class UserModel
 {
     private string _username;
     private string _displayName;
@@ -17,7 +17,7 @@ public class User
         set => _displayName = value;
     }
 
-    public User(string username, string displayName)
+    public UserModel(string username, string displayName)
     {
         _username = username;
         _displayName = displayName;

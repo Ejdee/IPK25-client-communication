@@ -1,6 +1,6 @@
-namespace IPK25_chat.Protocol;
+namespace IPK25_chat.Enums;
 
-public enum PayloadTypeEnum : byte
+public enum PayloadType : byte
 {
     CONFIRM = 0x00,
     REPLY = 0x01,
