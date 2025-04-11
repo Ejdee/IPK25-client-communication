@@ -1,34 +1,31 @@
 using System.Text;
+using IPK25_chat.Client;
 using IPK25_chat.Core;
 using IPK25_chat.Enums;
-using IPK25_chat.Models;
-using IPK25_chat.Protocol;
 
-namespace IPK25_chat.Client;
+namespace IPK25_chat.Parsers;
 
 public class PacketProcessor
 {
     private readonly ConfirmationTracker _confirmationTracker;
     private readonly UdpTransfer _udpTransfer;
-    private readonly MyFiniteStateMachine _fsm;
     private readonly Dictionary<byte, Action<byte[]>> _packetHandlers;
 
-    public PacketProcessor(ConfirmationTracker confirmationTracker, UdpTransfer udpTransfer, MyFiniteStateMachine fsm)
+    public PacketProcessor(ConfirmationTracker confirmationTracker, UdpTransfer udpTransfer)
     {
         _confirmationTracker = confirmationTracker;
         _udpTransfer = udpTransfer;
-        _fsm = fsm;
         
         _packetHandlers = new Dictionary<byte, Action<byte[]>>
         {
-            {(byte)PayloadTypeEnum.CONFIRM, ProcessConfirmationPacket},
-            {(byte)PayloadTypeEnum.REPLY, ProcessReplyPacket},
-            {(byte)PayloadTypeEnum.AUTH, ProcessAuthPacket},
-            {(byte)PayloadTypeEnum.JOIN, ProcessJoinPacket},
-            {(byte)PayloadTypeEnum.MSG, ProcessMsgPacket},
-            {(byte)PayloadTypeEnum.PING, ProcessPingPacket},
-            {(byte)PayloadTypeEnum.ERR, ProcessErrPacket},
-            {(byte)PayloadTypeEnum.BYE, ProcessByePacket}
+            {(byte)PayloadType.CONFIRM, ProcessConfirmationPacket},
+            {(byte)PayloadType.REPLY, ProcessReplyPacket},
+            {(byte)PayloadType.AUTH, ProcessAuthPacket},
+            {(byte)PayloadType.JOIN, ProcessJoinPacket},
+            {(byte)PayloadType.MSG, ProcessMsgPacket},
+            {(byte)PayloadType.PING, ProcessPingPacket},
+            {(byte)PayloadType.ERR, ProcessErrPacket},
+            {(byte)PayloadType.BYE, ProcessByePacket}
         };
     }
     

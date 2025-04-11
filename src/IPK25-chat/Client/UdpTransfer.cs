@@ -11,16 +11,14 @@ public class UdpTransfer : IClient
     private int _retryCount;
     private int _retryDelay;
     
-    public UdpTransfer(int retryCount, int retryDelay, IPEndPoint serverEndPoint, ConfirmationTracker confirmationTracker)
+    public UdpTransfer(int retryCount, int retryDelay, IPEndPoint serverEndPoint, ConfirmationTracker confirmationTracker, UdpClient udpClient)
     {
-        _udpClient = new UdpClient(0);
+        _udpClient = udpClient;
         _remoteEndPoint = serverEndPoint;
         _confirmationTracker = confirmationTracker;
         _retryCount = retryCount;
         _retryDelay = retryDelay;
     }
-    
-    public UdpClient UdpClient => _udpClient;
     
     public void SendMessage(byte[] payload)
     {
@@ -48,14 +46,12 @@ public class UdpTransfer : IClient
     public void SendConfirm(byte idPart1, byte idPart2)
     {
         var payload = new byte[]{ 0x00, idPart1, idPart2 };
+        _udpClient.Send(payload, payload.Length, _remoteEndPoint);
     }
-
-    public byte[] ReceiveMessage()
+    
+    public void SetRemoteEndPoint(IPEndPoint remoteEndPoint)
     {
-        IPEndPoint remoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
-        var data = _udpClient.Receive(ref remoteEndPoint);
         _remoteEndPoint = remoteEndPoint;
-        return data;
     }
 
     public void Dispose()

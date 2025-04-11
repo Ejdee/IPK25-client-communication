@@ -1,3 +1,5 @@
+using IPK25_chat.Enums;
+using IPK25_chat.Logger;
 using IPK25_chat.Models;
 using IPK25_chat.Parsers;
 
@@ -10,7 +12,9 @@ public class MessageParserTests
     public MessageParserTests()
     {
         var inputValidator = new InputValidator();
-        _messageParser = new MessageParser(inputValidator);
+        var logger = new ResultLogger();
+        var user = new UserModel("testUser", "Test User");
+        _messageParser = new MessageParser(inputValidator, logger, user);
     }
 
     [Fact]
@@ -20,14 +24,16 @@ public class MessageParserTests
         string message = "/auth username secret displayName";
 
         // Act
-        var result = _messageParser.ParseMessage(message);
+        var result = _messageParser.ParseMessage(message, out var parsedMessage);
 
         // Assert
-        Assert.Equal(MessageType.AUTH, result.MessageType);
-        Assert.NotNull(result.Parameters);
-        Assert.Equal("username", result.Parameters["username"]);
-        Assert.Equal("secret", result.Parameters["secret"]);
-        Assert.Equal("displayName", result.Parameters["displayName"]);
+        Assert.True(result);
+        Assert.NotNull(parsedMessage);
+        Assert.Equal(MessageType.AUTH, parsedMessage.MessageType);
+        Assert.NotNull(parsedMessage.Parameters);
+        Assert.Equal("username", parsedMessage.Parameters["username"]);
+        Assert.Equal("secret", parsedMessage.Parameters["secret"]);
+        Assert.Equal("displayName", parsedMessage.Parameters["displayName"]);
     }
 
     [Fact]
@@ -37,12 +43,14 @@ public class MessageParserTests
         string message = "/join channelID";
 
         // Act
-        var result = _messageParser.ParseMessage(message);
+        var result = _messageParser.ParseMessage(message, out var parsedMessage);
 
         // Assert
-        Assert.Equal(MessageType.JOIN, result.MessageType);
-        Assert.NotNull(result.Parameters);
-        Assert.Equal("channelID", result.Parameters["channelID"]);
+        Assert.True(result);
+        Assert.NotNull(parsedMessage);
+        Assert.Equal(MessageType.JOIN, parsedMessage.MessageType);
+        Assert.NotNull(parsedMessage.Parameters);
+        Assert.Equal("channelID", parsedMessage.Parameters["channelID"]);
     }
 
     [Fact]
@@ -52,12 +60,14 @@ public class MessageParserTests
         string message = "/rename newDisplayName";
 
         // Act
-        var result = _messageParser.ParseMessage(message);
+        var result = _messageParser.ParseMessage(message, out var parsedMessage);
 
         // Assert
-        Assert.Equal(MessageType.RENAME, result.MessageType);
-        Assert.NotNull(result.Parameters);
-        Assert.Equal("newDisplayName", result.Parameters["displayName"]);
+        Assert.True(result);
+        Assert.NotNull(parsedMessage);
+        Assert.Equal(MessageType.RENAME, parsedMessage.MessageType);
+        Assert.NotNull(parsedMessage.Parameters);
+        Assert.Equal("newDisplayName", parsedMessage.Parameters["displayName"]);
     }
 
     [Fact]
@@ -67,11 +77,13 @@ public class MessageParserTests
         string message = "/help";
 
         // Act
-        var result = _messageParser.ParseMessage(message);
+        var result = _messageParser.ParseMessage(message, out var parsedMessage);
 
         // Assert
-        Assert.Equal(MessageType.HELP, result.MessageType);
-        Assert.Null(result.Parameters);
+        Assert.True(result);
+        Assert.NotNull(parsedMessage);
+        Assert.Equal(MessageType.HELP, parsedMessage.MessageType);
+        Assert.Null(parsedMessage.Parameters);
     }
 
     [Fact]
@@ -81,54 +93,64 @@ public class MessageParserTests
         string message = "This is a regular message.";
 
         // Act
-        var result = _messageParser.ParseMessage(message);
+        var result = _messageParser.ParseMessage(message, out var parsedMessage);
 
         // Assert
-        Assert.Equal(MessageType.MSG, result.MessageType);
-        Assert.Equal("This is a regular message.", result.Content);
+        Assert.True(result);
+        Assert.NotNull(parsedMessage);
+        Assert.Equal(MessageType.MSG, parsedMessage.MessageType);
+        Assert.Equal("This is a regular message.", parsedMessage.Content);
     }
 
     [Fact]
-    public void ParseMessage_ShouldThrowExceptionForInvalidAuthMessage()
+    public void ParseMessage_ShouldReturnFalseForInvalidAuthMessage()
     {
         // Arrange
         string message = "/auth username";
 
-        // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(() => _messageParser.ParseMessage(message));
-        Assert.Equal("Invalid AUTH command. Expected format: /auth <username> <secret> <displayName>", exception.Message);
+        // Act
+        var result = _messageParser.ParseMessage(message, out _);
+
+        // Assert
+        Assert.False(result);
     }
 
     [Fact]
-    public void ParseMessage_ShouldThrowExceptionForInvalidJoinMessage()
+    public void ParseMessage_ShouldReturnFalseForInvalidJoinMessage()
     {
         // Arrange
         string message = "/join";
 
-        // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(() => _messageParser.ParseMessage(message));
-        Assert.Equal("Invalid JOIN command. Expected format: /join <channelID>", exception.Message);
+        // Act
+        var result = _messageParser.ParseMessage(message, out _);
+
+        // Assert
+        Assert.False(result);
     }
 
     [Fact]
-    public void ParseMessage_ShouldThrowExceptionForInvalidRenameMessage()
+    public void ParseMessage_ShouldReturnFalseForInvalidRenameMessage()
     {
         // Arrange
         string message = "/rename";
 
-        // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(() => _messageParser.ParseMessage(message));
-        Assert.Equal("Invalid RENAME command. Expected format: /rename <newDisplayName>", exception.Message);
+        // Act
+        var result = _messageParser.ParseMessage(message, out _);
+
+        // Assert
+        Assert.False(result);
     }
 
     [Fact]
-    public void ParseMessage_ShouldThrowExceptionForInvalidHelpMessage()
+    public void ParseMessage_ShouldReturnFalseForInvalidHelpMessage()
     {
         // Arrange
         string message = "/help extra";
 
-        // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(() => _messageParser.ParseMessage(message));
-        Assert.Equal("Invalid HELP command. Expected format: /help", exception.Message);
+        // Act
+        var result = _messageParser.ParseMessage(message, out _);
+
+        // Assert
+        Assert.False(result);
     }
 }

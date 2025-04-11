@@ -1,9 +1,10 @@
 ﻿
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.CompilerServices;
 using IPK25_chat.CLI;
 using IPK25_chat.Client;
+using IPK25_chat.Core;
+using IPK25_chat.Enums;
 using IPK25_chat.Logger;
 using IPK25_chat.Models;
 using IPK25_chat.Parsers;
@@ -18,17 +19,17 @@ internal abstract class Program
         ArgumentParser parser = new();
         parser.Parse(args);
 
+        UserModel userModel = new UserModel("DefaultUsername", "defaultDisplayName");
         ConfirmationTracker confirmationTracker = new();
-        InputValidator validator = new();
-        MessageParser msgParser = new(validator);
-        ProtocolPayloadBuilder payloadBuilder = new ProtocolPayloadBuilder("Frodo");
         ResultLogger resultLogger = new();
-        User user = new User("DefaultUsername", "defaultDisplayName");
-        
+        InputValidator validator = new();
+        MessageParser msgParser = new(validator, resultLogger, userModel);
+        ProtocolPayloadBuilder payloadBuilder = new ProtocolPayloadBuilder(userModel);
         
         if (parser.ParsedOptions == null)
         {
-            Console.WriteLine("Parsed options are null.");     
+            Console.WriteLine("Parsed options are null.");
+            return;
         }
         else
         {
@@ -39,50 +40,65 @@ internal abstract class Program
             Console.WriteLine($"Max Retries: {parser.ParsedOptions.UdpRetries}");
         }
 
-        var serverEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 4567);
-        using UdpTransfer udpTransfer = new UdpTransfer(3, 250, serverEndPoint, confirmationTracker);
+        UdpClient udpClient = new UdpClient(0);
+        var serverEndPoint = CreateInitialEndpoint(parser.ParsedOptions.ServerAddress, parser.ParsedOptions.Port);
+        using UdpTransfer udpTransfer = new UdpTransfer(3, 250, serverEndPoint, confirmationTracker, udpClient);
         PacketProcessor packetProcessor = new(confirmationTracker, udpTransfer);
+        UdpListener udpListener = new(udpClient, udpTransfer);
+        MyFiniteStateMachine fsm = new();
+        MessageHandler messageHandler = new(packetProcessor, udpTransfer, fsm, udpListener);
 
-        UdpListener udpListener = new(udpTransfer.UdpClient);
-        udpListener.OnMessageArrival += packetProcessor.ProcessIncomingPacket;
+        udpListener.OnMessageArrival += messageHandler.HandleMessage;
         udpListener.StartListening();
-
-        while (Console.ReadLine() is { } inputLine)
+        
+        
+        bool isRunning = true;
+        
+        Console.CancelKeyPress += (_, e) =>
         {
+            e.Cancel = true;
+            var byeMessage = payloadBuilder.CreateByePacket();
+            messageHandler.HandleMessage(false, byeMessage);
+            udpListener.StopListening();
+            isRunning = false;
+            Environment.Exit(0);
+        };
+
+        while (isRunning && Console.ReadLine() is { } inputLine)
+        {
+            if (!msgParser.ParseMessage(inputLine, out var model))
+            {
+                Console.WriteLine("Invalid message format.");
+                continue;
+            }
+            
             try
             {
-                var model = msgParser.ParseMessage(inputLine);
-                try
-                {
-                    var result = payloadBuilder.GetPayloadFromMessage(model);
-                    Console.WriteLine(BitConverter.ToString(result));
-
-                    try
-                    {
-                        udpTransfer.SendMessage(result);
-                    } catch (Exception e)
-                    {
-                        Console.WriteLine($"Error sending message: {e.Message}");
-                    }
-                }
-                catch (NotSupportedException)
-                {
-                    if (model.MessageType == MessageType.HELP)
-                    {
-                        resultLogger.PrintHelp();
-                    } else if (model.MessageType == MessageType.RENAME)
-                    {
-                        user.DisplayName = model.Parameters["displayName"];
-                        Console.WriteLine($"New display name: {user.DisplayName}");
-                    }
-                }
-
+                var result = payloadBuilder.GetPayloadFromMessage(model);
+                messageHandler.HandleMessage(false, result);
             }
             catch (ArgumentException e)
             {
                 Console.WriteLine(e.Message);
             }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error sending message: {e.Message}");
+            }
         }
     }
 
+    public static IPEndPoint CreateInitialEndpoint(string serverAddress, int port)
+    {
+        if (!IPAddress.TryParse(serverAddress, out var ipAddress))
+        {
+            var addresses = Dns.GetHostAddresses(serverAddress);
+            if (addresses.Length == 0)
+            {
+                throw new ArgumentException("Invalid server address");
+            } 
+            ipAddress = addresses.FirstOrDefault(a => a.AddressFamily == AddressFamily.InterNetwork) ?? addresses.First();
+        }
+        return new IPEndPoint(ipAddress, port);
+    }
 }

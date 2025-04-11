@@ -1,3 +1,4 @@
+using IPK25_chat.Enums;
 using IPK25_chat.Protocol;
 
 namespace IPK25_chat.Models;

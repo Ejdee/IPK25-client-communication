@@ -1,4 +1,5 @@
 using System.Text;
+using IPK25_chat.Enums;
 using IPK25_chat.Models;
 using IPK25_chat.Protocol;
 using Xunit;
@@ -11,7 +12,7 @@ public class ProtocolPayloadBuilderTests
     public void GetPayloadFromMessage_ShouldCreateAuthPayload()
     {
         // Arrange
-        var builder = new ProtocolPayloadBuilder("TestDisplayName");
+        var builder = new ProtocolPayloadBuilder(new UserModel("TestUser", "TestDisplayName"));
         var message = new MessageModel (
             MessageType.AUTH,
             new Dictionary<string, string>
@@ -27,7 +28,7 @@ public class ProtocolPayloadBuilderTests
         // Assert
         var expectedPayload = new List<byte>
         {
-            (byte)PayloadTypeEnum.AUTH, // Message type
+            (byte)PayloadType.AUTH, // Message type
             0, 0, // ID (initial value)
         };
         expectedPayload.AddRange(Encoding.ASCII.GetBytes("TestUser"));
@@ -44,7 +45,7 @@ public class ProtocolPayloadBuilderTests
     public void GetPayloadFromMessage_ShouldCreateJoinPayload()
     {
         // Arrange
-        var builder = new ProtocolPayloadBuilder("TestDisplayName");
+        var builder = new ProtocolPayloadBuilder(new UserModel("TestUser", "TestDisplayName"));
         var message = new MessageModel(
             MessageType.JOIN,
             new Dictionary<string, string>
@@ -58,7 +59,7 @@ public class ProtocolPayloadBuilderTests
         // Assert
         var expectedPayload = new List<byte>
         {
-            (byte)PayloadTypeEnum.JOIN, // Message type
+            (byte)PayloadType.JOIN, // Message type
             0, 0, // ID (initial value)
         };
         expectedPayload.AddRange(Encoding.ASCII.GetBytes("TestChannel"));
@@ -73,7 +74,7 @@ public class ProtocolPayloadBuilderTests
     public void GetPayloadFromMessage_ShouldCreateMsgPayload()
     {
         // Arrange
-        var builder = new ProtocolPayloadBuilder("TestDisplayName");
+        var builder = new ProtocolPayloadBuilder(new UserModel("TestUser", "TestDisplayName"));
         var message = new MessageModel(
             MessageType.MSG,
             content: "Hello, World!");
@@ -84,7 +85,7 @@ public class ProtocolPayloadBuilderTests
         // Assert
         var expectedPayload = new List<byte>
         {
-            (byte)PayloadTypeEnum.MSG, // Message type
+            (byte)PayloadType.MSG, // Message type
             0, 0, // ID (initial value)
         };
         expectedPayload.AddRange(Encoding.ASCII.GetBytes("TestDisplayName"));
@@ -99,7 +100,7 @@ public class ProtocolPayloadBuilderTests
     public void GetPayloadFromMessage_ShouldThrowNotSupportedExceptionRENAME()
     {
         // Arrange
-        var builder = new ProtocolPayloadBuilder("TestDisplayName");
+        var builder = new ProtocolPayloadBuilder(new UserModel("TestUser", "TestDisplayName"));
         var message = new MessageModel(
             MessageType.RENAME,
             new Dictionary<string, string>
@@ -115,7 +116,7 @@ public class ProtocolPayloadBuilderTests
     public void GetPayloadFromMessage_ShouldThrowNotSupportedExceptionHELP()
     {
         // Arrange
-        var builder = new ProtocolPayloadBuilder("TestDisplayName");
+        var builder = new ProtocolPayloadBuilder(new UserModel("TestUser", "TestDisplayName"));
         var message = new MessageModel(
             MessageType.HELP);
         

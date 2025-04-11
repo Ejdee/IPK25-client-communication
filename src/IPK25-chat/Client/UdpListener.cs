@@ -1,20 +1,24 @@
 using System.Net;
 using System.Net.Sockets;
+using IPK25_chat.Core;
+using IPK25_chat.Enums;
 
 namespace IPK25_chat.Client;
 
 public class UdpListener
 {
    private UdpClient _udpClient;
-   private List<string> _processedMessageIds;
+   private HashSet<string> _processedMessageIds;
    private CancellationTokenSource _cancellationTokenSource = new();
+   private readonly UdpTransfer _udpTransfer;
 
-   public event Action<byte[]>? OnMessageArrival; 
+   public event Action<bool, byte[]>? OnMessageArrival; 
    
-   public UdpListener(UdpClient udpClient)
+   public UdpListener(UdpClient udpClient, UdpTransfer udpTransfer)
    {
       _udpClient = udpClient;
-      _processedMessageIds = new List<string>();
+      _udpTransfer = udpTransfer;
+      _processedMessageIds = new HashSet<string>();
    }
 
    public void StartListening()
@@ -27,13 +31,19 @@ public class UdpListener
             try
             {
                var result = await _udpClient.ReceiveAsync();
+               var remote = result.RemoteEndPoint;
+               
                var data = result.Buffer;
 
-               var id = GetMessageId(data);
-               if (!_processedMessageIds.Contains(id))
+               if (data[0] == (byte)PayloadType.REPLY)
                {
-                  _processedMessageIds.Add(id);
-                  OnMessageArrival?.Invoke(data);
+                  _udpTransfer.SetRemoteEndPoint(remote);
+               }
+
+               var id = GetMessageId(data);
+               if (_processedMessageIds.Add(id))
+               {
+                  OnMessageArrival?.Invoke(true, data);
                }
             }
             catch (Exception e)
@@ -49,6 +59,7 @@ public class UdpListener
    {
       _cancellationTokenSource.Cancel();
       _udpClient.Close();
+      _udpClient.Dispose();
    } 
    
    private string GetMessageId(byte[] data) => $"{data[1]}{data[2]}";

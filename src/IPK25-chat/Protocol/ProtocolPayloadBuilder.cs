@@ -1,4 +1,5 @@
 using System.Text;
+using IPK25_chat.Enums;
 using IPK25_chat.Models;
 
 namespace IPK25_chat.Protocol;
@@ -6,17 +7,11 @@ namespace IPK25_chat.Protocol;
 public class ProtocolPayloadBuilder
 {
     private int _id = 0;
-    private string _displayName;
-
-    public string DisplayName
-    {
-        get => _displayName;
-        set => _displayName = value;
-    }
+    private readonly UserModel _user;
     
-    public ProtocolPayloadBuilder(string displayName)
+    public ProtocolPayloadBuilder(UserModel user)
     {
-        _displayName = displayName;
+        _user = user;
     }
 
     public byte[] GetPayloadFromMessage(MessageModel message)
@@ -24,11 +19,11 @@ public class ProtocolPayloadBuilder
         switch (message.MessageType)
         {
             case MessageType.AUTH:
-                return CreatePayload(message.MessageType, message.Parameters["username"], message.Parameters["displayName"], message.Parameters["secret"]);
+                return CreatePayload(message.MessageType, message.Parameters["username"], _user.DisplayName, message.Parameters["secret"]);
             case MessageType.JOIN:
-                return CreatePayload(message.MessageType, message.Parameters["channelID"], _displayName);
+                return CreatePayload(message.MessageType, message.Parameters["channelID"], _user.DisplayName);
             case MessageType.MSG:
-                return CreatePayload(message.MessageType, _displayName, message.Content);
+                return CreatePayload(message.MessageType, _user.DisplayName, message.Content);
             default:
                 throw new NotSupportedException();
         }
@@ -61,10 +56,28 @@ public class ProtocolPayloadBuilder
     {
         return messageMessageType switch
         {
-            MessageType.AUTH => (byte)PayloadTypeEnum.AUTH,
-            MessageType.JOIN => (byte)PayloadTypeEnum.JOIN,
-            MessageType.MSG => (byte)PayloadTypeEnum.MSG,
+            MessageType.AUTH => (byte)PayloadType.AUTH,
+            MessageType.JOIN => (byte)PayloadType.JOIN,
+            MessageType.MSG => (byte)PayloadType.MSG,
             _ => throw new ArgumentOutOfRangeException(nameof(messageMessageType), messageMessageType, null)
         };
+    }
+
+    public byte[] CreateByePacket()
+    {
+        var payload = new List<byte>();
+        payload.Add((byte)PayloadType.BYE);
+        
+        ushort id = (ushort) _id++;
+        var idBytes = BitConverter.GetBytes(id);
+        if (BitConverter.IsLittleEndian) { Array.Reverse(idBytes); }
+        
+        payload.Add(idBytes[0]);
+        payload.Add(idBytes[1]);
+        
+        payload.AddRange(Encoding.ASCII.GetBytes(_user.DisplayName));
+        payload.Add(0);
+        
+        return payload.ToArray();
     }
 }
