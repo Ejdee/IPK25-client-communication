@@ -4,7 +4,6 @@ using System.Net.Sockets;
 using IPK25_chat.CLI;
 using IPK25_chat.Client;
 using IPK25_chat.Core;
-using IPK25_chat.Enums;
 using IPK25_chat.Logger;
 using IPK25_chat.Models;
 using IPK25_chat.Parsers;
@@ -24,7 +23,10 @@ internal abstract class Program
         ResultLogger resultLogger = new();
         InputValidator validator = new();
         MessageParser msgParser = new(validator, resultLogger, userModel);
-        ProtocolPayloadBuilder payloadBuilder = new ProtocolPayloadBuilder(userModel);
+        UdpProtocolPayloadBuilder payloadBuilder = new UdpProtocolPayloadBuilder(userModel);
+
+        int retryCount = 0;
+        int retryDelay = 0;
         
         if (parser.ParsedOptions == null)
         {
@@ -38,11 +40,14 @@ internal abstract class Program
             Console.WriteLine($"Port: {parser.ParsedOptions.Port}");
             Console.WriteLine($"Confirmation timeout: {parser.ParsedOptions.UdpTimeout}");
             Console.WriteLine($"Max Retries: {parser.ParsedOptions.UdpRetries}");
+            retryCount = parser.ParsedOptions.UdpRetries;
+            retryDelay = parser.ParsedOptions.UdpTimeout;
         }
 
         UdpClient udpClient = new UdpClient(0);
         var serverEndPoint = CreateInitialEndpoint(parser.ParsedOptions.ServerAddress, parser.ParsedOptions.Port);
-        using UdpTransfer udpTransfer = new UdpTransfer(3, 250, serverEndPoint, confirmationTracker, udpClient);
+        UdpClientConfig udpConfig = new(retryCount, retryDelay, serverEndPoint, confirmationTracker, udpClient);
+        using UdpTransfer udpTransfer = new UdpTransfer(udpConfig, payloadBuilder);
         PacketProcessor packetProcessor = new(confirmationTracker, udpTransfer);
         UdpListener udpListener = new(udpClient, udpTransfer);
         MyFiniteStateMachine fsm = new();

@@ -11,6 +11,9 @@ public class MessageHandler
     private readonly UdpListener _udpListener;
     private readonly PacketProcessor _packetProcessor;
 
+    private CancellationTokenSource? _authTimeout;
+    private readonly int _authTimeoutDuration = 5000;
+
     public MessageHandler(PacketProcessor packetProcessor, UdpTransfer udpTransfer, MyFiniteStateMachine fsm, UdpListener udpListener)
     {
         _packetProcessor = packetProcessor;
@@ -26,29 +29,51 @@ public class MessageHandler
         {
             if (isIncoming)
             {
+                if (type is MessageType.REPLY or MessageType.NOTREPLY)
+                {
+                    _authTimeout?.Cancel();
+                    _authTimeout = null;
+                }
+                
                 _packetProcessor.ProcessIncomingPacket(payload);
             }
             else
             {
                 _udpTransfer.SendMessage(payload);
+                
+                if(type == MessageType.AUTH)
+                    StartAuthTimeout();
             }
 
-            if (_fsm.TransitionAvailable())
+            switch (_fsm.GetActionAvailable())
             {
-                Console.WriteLine($"Transitioning from state {_fsm.CurrentState}.");
-                _fsm.PerformTransition();
-                if (_fsm.CurrentState == States.END)
-                {
-                    Console.WriteLine("Ending the session.");
-                    _udpListener.StopListening();
-                    _udpTransfer.Dispose();
-                    Environment.Exit(0);
-                }
+                case FsmAction.SendErrorMessage:
+                    _udpTransfer.SendErrorMessage();
+                    break;
+                case FsmAction.PerformTransition:
+                    _fsm.PerformTransition();
+                    break;
+                case FsmAction.NoAction:
+                    break;
             }
         }
         else
         {
-            Console.WriteLine($"Message not valid in the current state {_fsm.CurrentState}: {BitConverter.ToString(payload)}");
+            if (_fsm.GetActionAvailable() == FsmAction.SendErrorMessage)
+            {
+                _udpTransfer.SendErrorMessage();
+            }
+            else
+            {
+                Console.WriteLine(
+                    $"Message not valid in the current state {_fsm.CurrentState}: {BitConverter.ToString(payload)}");
+            }
+        }
+        
+        if (_fsm.CurrentState == States.END)
+        {
+            _authTimeout?.Cancel();
+            TerminateCommunication();
         }
     }
 
@@ -66,5 +91,27 @@ public class MessageHandler
             (byte)PayloadType.CONFIRM => MessageType.CONFIRM,
             _ => throw new NotSupportedException("Unsupported message type")
         };
+    }
+
+    private void TerminateCommunication()
+    {
+        Console.WriteLine("Ending the session.");
+        _udpListener.StopListening();
+        _udpTransfer.Dispose();
+        Environment.Exit(0);
+    }
+
+    private void StartAuthTimeout()
+    {
+        _authTimeout = new CancellationTokenSource();
+        
+        Task.Delay(_authTimeoutDuration, _authTimeout.Token).ContinueWith(t =>
+        {
+            if (!t.IsCanceled)
+            {
+                _udpTransfer.SendErrorMessage();
+                TerminateCommunication();
+            }
+        }, TaskScheduler.Default);
     }
 }
