@@ -12,7 +12,7 @@ public class ProtocolPayloadBuilderTests
     public void GetPayloadFromMessage_ShouldCreateAuthPayload()
     {
         // Arrange
-        var builder = new ProtocolPayloadBuilder(new UserModel("TestUser", "TestDisplayName"));
+        var builder = new UdpProtocolPayloadBuilder(new UserModel("TestUser", "TestDisplayName"));
         var message = new MessageModel (
             MessageType.AUTH,
             new Dictionary<string, string>
@@ -45,7 +45,7 @@ public class ProtocolPayloadBuilderTests
     public void GetPayloadFromMessage_ShouldCreateJoinPayload()
     {
         // Arrange
-        var builder = new ProtocolPayloadBuilder(new UserModel("TestUser", "TestDisplayName"));
+        var builder = new UdpProtocolPayloadBuilder(new UserModel("TestUser", "TestDisplayName"));
         var message = new MessageModel(
             MessageType.JOIN,
             new Dictionary<string, string>
@@ -74,7 +74,7 @@ public class ProtocolPayloadBuilderTests
     public void GetPayloadFromMessage_ShouldCreateMsgPayload()
     {
         // Arrange
-        var builder = new ProtocolPayloadBuilder(new UserModel("TestUser", "TestDisplayName"));
+        var builder = new UdpProtocolPayloadBuilder(new UserModel("TestUser", "TestDisplayName"));
         var message = new MessageModel(
             MessageType.MSG,
             content: "Hello, World!");
@@ -100,7 +100,7 @@ public class ProtocolPayloadBuilderTests
     public void GetPayloadFromMessage_ShouldThrowNotSupportedExceptionRENAME()
     {
         // Arrange
-        var builder = new ProtocolPayloadBuilder(new UserModel("TestUser", "TestDisplayName"));
+        var builder = new UdpProtocolPayloadBuilder(new UserModel("TestUser", "TestDisplayName"));
         var message = new MessageModel(
             MessageType.RENAME,
             new Dictionary<string, string>
@@ -116,7 +116,7 @@ public class ProtocolPayloadBuilderTests
     public void GetPayloadFromMessage_ShouldThrowNotSupportedExceptionHELP()
     {
         // Arrange
-        var builder = new ProtocolPayloadBuilder(new UserModel("TestUser", "TestDisplayName"));
+        var builder = new UdpProtocolPayloadBuilder(new UserModel("TestUser", "TestDisplayName"));
         var message = new MessageModel(
             MessageType.HELP);
         
