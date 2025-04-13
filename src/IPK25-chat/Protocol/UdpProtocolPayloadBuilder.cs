@@ -4,7 +4,7 @@ using IPK25_chat.Models;
 
 namespace IPK25_chat.Protocol;
 
-public class UdpProtocolPayloadBuilder
+public class UdpProtocolPayloadBuilder : IProtocolPayloadBuilder
 {
     private int _id = 0;
     private readonly UserModel _user;

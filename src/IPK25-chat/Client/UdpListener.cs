@@ -1,6 +1,4 @@
-using System.Net;
 using System.Net.Sockets;
-using IPK25_chat.Core;
 using IPK25_chat.Enums;
 
 namespace IPK25_chat.Client;

@@ -1,38 +1,35 @@
 using System.Net;
 using System.Net.Sockets;
+using IPK25_chat.Enums;
+using IPK25_chat.Models;
+using IPK25_chat.Protocol;
 
 namespace IPK25_chat.Client;
 
 public class UdpTransfer : IClient
 {
-    private UdpClient _udpClient;
-    private IPEndPoint _remoteEndPoint;
-    private ConfirmationTracker _confirmationTracker;
-    private int _retryCount;
-    private int _retryDelay;
+    private readonly UdpProtocolPayloadBuilder _payloadBuilder;
+    private readonly UdpClientConfig _udpConfig;
     
-    public UdpTransfer(int retryCount, int retryDelay, IPEndPoint serverEndPoint, ConfirmationTracker confirmationTracker, UdpClient udpClient)
+    public UdpTransfer(UdpClientConfig udpConfig, UdpProtocolPayloadBuilder payloadBuilder)
     {
-        _udpClient = udpClient;
-        _remoteEndPoint = serverEndPoint;
-        _confirmationTracker = confirmationTracker;
-        _retryCount = retryCount;
-        _retryDelay = retryDelay;
+        _udpConfig = udpConfig;
+        _payloadBuilder = payloadBuilder;
     }
     
     public void SendMessage(byte[] payload)
     {
         var id = $"{payload[1]}{payload[2]}";
-        _confirmationTracker.NewConfirmationWait(id);
-        _udpClient.Client.ReceiveTimeout = _retryDelay;
+        _udpConfig.ConfirmationTracker.NewConfirmationWait(id);
+        _udpConfig.UdpClient.Client.ReceiveTimeout = _udpConfig.RetryDelay;
         
-        for (int attempt = 0; attempt < _retryCount; attempt++)
+        for (int attempt = 0; attempt < _udpConfig.RetryCount; attempt++)
         {
-            _udpClient.Send(payload, payload.Length, _remoteEndPoint);
+            _udpConfig.UdpClient.Send(payload, payload.Length, _udpConfig.ServerEndPoint);
 
-            if (_confirmationTracker.WaitForConfirmation(id, _retryDelay))
+            if (_udpConfig.ConfirmationTracker.WaitForConfirmation(id, _udpConfig.RetryDelay))
             {
-                _confirmationTracker.RemoveConfirmation(id);
+                _udpConfig.ConfirmationTracker.RemoveConfirmation(id);
                 Console.WriteLine("Message sent and acknowledged.");
                 return;
             }
@@ -46,17 +43,23 @@ public class UdpTransfer : IClient
     public void SendConfirm(byte idPart1, byte idPart2)
     {
         var payload = new byte[]{ 0x00, idPart1, idPart2 };
-        _udpClient.Send(payload, payload.Length, _remoteEndPoint);
+        _udpConfig.UdpClient.Send(payload, payload.Length, _udpConfig.ServerEndPoint);
+    }
+
+    public void SendErrorMessage(byte[]? contents = null)
+    {
+        var payload = _payloadBuilder.CreateErrPacket(contents); 
+        SendMessage(payload);
     }
     
     public void SetRemoteEndPoint(IPEndPoint remoteEndPoint)
     {
-        _remoteEndPoint = remoteEndPoint;
+        _udpConfig.ServerEndPoint = remoteEndPoint;
     }
 
     public void Dispose()
     {
-        _udpClient.Close();
-        _udpClient.Dispose();
+        _udpConfig.UdpClient.Close();
+        _udpConfig.UdpClient.Dispose();
     }
 }
