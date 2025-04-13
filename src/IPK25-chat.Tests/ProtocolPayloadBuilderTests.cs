@@ -1,7 +1,7 @@
 using System.Text;
 using IPK25_chat.Enums;
 using IPK25_chat.Models;
-using IPK25_chat.Protocol;
+using IPK25_chat.PayloadBuilders;
 using Xunit;
 
 namespace IPK25_chat.Tests;

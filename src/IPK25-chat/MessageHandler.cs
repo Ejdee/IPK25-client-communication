@@ -1,30 +1,34 @@
 using IPK25_chat.Client;
+using IPK25_chat.Core;
 using IPK25_chat.Enums;
-using IPK25_chat.Parsers;
+using IPK25_chat.PacketProcess;
+using IPK25_chat.Validators;
 
-namespace IPK25_chat.Core;
+namespace IPK25_chat;
 
 public class MessageHandler
 {
     private readonly MyFiniteStateMachine _fsm;
-    private readonly UdpTransfer _udpTransfer;
-    private readonly UdpListener _udpListener;
-    private readonly PacketProcessor _packetProcessor;
+    private readonly IListener _listener;
+    private readonly IClient _client;
+    private readonly IValidator _validator;
+    private readonly IPacketProcessor _packetProcessor;
 
     private CancellationTokenSource? _authTimeout;
-    private readonly int _authTimeoutDuration = 5000;
+    private const int AuthTimeoutDuration = 5000;
 
-    public MessageHandler(PacketProcessor packetProcessor, UdpTransfer udpTransfer, MyFiniteStateMachine fsm, UdpListener udpListener)
+    public MessageHandler(IPacketProcessor packetProcessor, MyFiniteStateMachine fsm, IListener listener, IClient client, IValidator validator)
     {
         _packetProcessor = packetProcessor;
-        _udpTransfer = udpTransfer;
         _fsm = fsm;
-        _udpListener = udpListener;
+        _listener = listener;
+        _client = client;
+        _validator = validator;
     }
 
     public void HandleMessage(bool isIncoming, byte[] payload)
     {
-        var type = GetMessageType(payload);
+        var type = _validator.ValidateAndGetMsgType(payload);
         if (_fsm.MessageValidInTheCurrentState(type, isIncoming))
         {
             if (isIncoming)
@@ -35,11 +39,11 @@ public class MessageHandler
                     _authTimeout = null;
                 }
                 
-                _packetProcessor.ProcessIncomingPacket(payload);
+                _packetProcessor.ProcessIncomingPacket(type, payload);
             }
             else
             {
-                _udpTransfer.SendMessage(payload);
+                _client.SendMessage(payload);
                 
                 if(type == MessageType.AUTH)
                     StartAuthTimeout();
@@ -48,7 +52,7 @@ public class MessageHandler
             switch (_fsm.GetActionAvailable())
             {
                 case FsmAction.SendErrorMessage:
-                    _udpTransfer.SendErrorMessage();
+                    _client.SendErrorMessage();
                     break;
                 case FsmAction.PerformTransition:
                     _fsm.PerformTransition();
@@ -61,7 +65,7 @@ public class MessageHandler
         {
             if (_fsm.GetActionAvailable() == FsmAction.SendErrorMessage)
             {
-                _udpTransfer.SendErrorMessage();
+                _client.SendErrorMessage();
             }
             else
             {
@@ -77,27 +81,12 @@ public class MessageHandler
         }
     }
 
-    private MessageType GetMessageType(byte[] data)
-    {
-        return data[0] switch
-        {
-            (byte)PayloadType.AUTH => MessageType.AUTH,
-            (byte)PayloadType.JOIN => MessageType.JOIN,
-            (byte)PayloadType.MSG => MessageType.MSG,
-            (byte)PayloadType.REPLY => data[3] != 0 ? MessageType.REPLY : MessageType.NOTREPLY,
-            (byte)PayloadType.PING => MessageType.PING,
-            (byte)PayloadType.ERR => MessageType.ERR,
-            (byte)PayloadType.BYE => MessageType.BYE,
-            (byte)PayloadType.CONFIRM => MessageType.CONFIRM,
-            _ => throw new NotSupportedException("Unsupported message type")
-        };
-    }
-
     private void TerminateCommunication()
     {
         Console.WriteLine("Ending the session.");
-        _udpListener.StopListening();
-        _udpTransfer.Dispose();
+        _listener.StopListening();
+        _listener.Dispose();
+        _client.Dispose();
         Environment.Exit(0);
     }
 
@@ -105,11 +94,11 @@ public class MessageHandler
     {
         _authTimeout = new CancellationTokenSource();
         
-        Task.Delay(_authTimeoutDuration, _authTimeout.Token).ContinueWith(t =>
+        Task.Delay(AuthTimeoutDuration, _authTimeout.Token).ContinueWith(t =>
         {
             if (!t.IsCanceled)
             {
-                _udpTransfer.SendErrorMessage();
+                _client.SendErrorMessage();
                 TerminateCommunication();
             }
         }, TaskScheduler.Default);

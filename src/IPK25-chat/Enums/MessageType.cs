@@ -2,6 +2,7 @@ namespace IPK25_chat.Enums;
 
 public enum MessageType
 {
+    INVALID = -1,
     BLANK = 0,
     RENAME = 1,
     AUTH = 2,

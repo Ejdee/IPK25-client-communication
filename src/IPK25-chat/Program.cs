@@ -6,8 +6,11 @@ using IPK25_chat.Client;
 using IPK25_chat.Core;
 using IPK25_chat.Logger;
 using IPK25_chat.Models;
+using IPK25_chat.PacketProcess;
 using IPK25_chat.Parsers;
-using IPK25_chat.Protocol;
+using IPK25_chat.PayloadBuilders;
+using IPK25_chat.Validators;
+using TcpListener = IPK25_chat.Client.TcpListener;
 
 namespace IPK25_chat;
 
@@ -23,7 +26,6 @@ internal abstract class Program
         ResultLogger resultLogger = new();
         InputValidator validator = new();
         MessageParser msgParser = new(validator, resultLogger, userModel);
-        UdpProtocolPayloadBuilder payloadBuilder = new UdpProtocolPayloadBuilder(userModel);
 
         int retryCount = 0;
         int retryDelay = 0;
@@ -44,18 +46,46 @@ internal abstract class Program
             retryDelay = parser.ParsedOptions.UdpTimeout;
         }
 
-        UdpClient udpClient = new UdpClient(0);
+        IProtocolPayloadBuilder payloadBuilder;
+        IClient client;
+        IListener listener;
+        IValidator validatorOfIncoming;
+        IPacketProcessor packetProcessor;
         var serverEndPoint = CreateInitialEndpoint(parser.ParsedOptions.ServerAddress, parser.ParsedOptions.Port);
-        UdpClientConfig udpConfig = new(retryCount, retryDelay, serverEndPoint, confirmationTracker, udpClient);
-        using UdpTransfer udpTransfer = new UdpTransfer(udpConfig, payloadBuilder);
-        PacketProcessor packetProcessor = new(confirmationTracker, udpTransfer);
-        UdpListener udpListener = new(udpClient, udpTransfer);
-        MyFiniteStateMachine fsm = new();
-        MessageHandler messageHandler = new(packetProcessor, udpTransfer, fsm, udpListener);
+        if (parser.ParsedOptions.Protocol == "udp")
+        {
+            UdpClient udpClient = new UdpClient(0);
+            UdpClientConfig udpConfig = new(retryCount, retryDelay, serverEndPoint, confirmationTracker, udpClient);
+            
+            payloadBuilder = new UdpProtocolPayloadBuilder(userModel);
+            UdpTransfer udpTransfer = new UdpTransfer(udpConfig, payloadBuilder);
+            client = udpTransfer;
+            listener = new UdpListener(udpConfig.UdpClient, udpTransfer);
+            validatorOfIncoming = new UdpValidator();
+            packetProcessor = new UdpPacketProcessor(confirmationTracker, udpTransfer);
+        }
+        else if (parser.ParsedOptions.Protocol == "tcp")
+        {
+            payloadBuilder = new TcpProtocolPayloadBuilder(userModel);
+            TcpClient tcpClient = new TcpClient();
+            tcpClient.Connect(serverEndPoint);
+            client = new TcpTransfer(payloadBuilder, tcpClient);
+            listener = new TcpListener(tcpClient);
+            validatorOfIncoming = new TcpValidator();
+            packetProcessor = new TcpPacketProcessor();
+        }
+        else
+        {
+            Console.WriteLine("Unknown protocol.");
+            Environment.Exit(1);
+            return;
+        }
 
-        udpListener.OnMessageArrival += messageHandler.HandleMessage;
-        udpListener.StartListening();
-        
+        MyFiniteStateMachine fsm = new();
+        MessageHandler messageHandler = new(packetProcessor, fsm, listener, client, validatorOfIncoming);
+
+        listener.OnMessageArrival += messageHandler.HandleMessage;
+        listener.StartListening();
         
         bool isRunning = true;
         
@@ -64,7 +94,8 @@ internal abstract class Program
             e.Cancel = true;
             var byeMessage = payloadBuilder.CreateByePacket();
             messageHandler.HandleMessage(false, byeMessage);
-            udpListener.StopListening();
+            listener.StopListening();
+            client.Dispose();
             isRunning = false;
             Environment.Exit(0);
         };

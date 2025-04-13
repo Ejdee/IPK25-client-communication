@@ -1,17 +1,18 @@
+using System.Net;
 using System.Net.Sockets;
-using IPK25_chat.Protocol;
+using IPK25_chat.PayloadBuilders;
 
 namespace IPK25_chat.Client;
 
 public class TcpTransfer : IClient
 {
-    private readonly UdpProtocolPayloadBuilder _payloadBuilder;
+    private readonly IProtocolPayloadBuilder _payloadBuilder;
     private readonly TcpClient _tcpClient;
-    
-    public TcpTransfer(UdpProtocolPayloadBuilder payloadBuilder)
+
+    public TcpTransfer(IProtocolPayloadBuilder payloadBuilder, TcpClient tcpClient)
     {
         _payloadBuilder = payloadBuilder;
-        _tcpClient = new TcpClient();
+        _tcpClient = tcpClient;
     }
     
     public void SendMessage(byte[] payload)
@@ -37,5 +38,6 @@ public class TcpTransfer : IClient
     public void Dispose()
     {
         _tcpClient.Dispose();
+        _tcpClient.Close();
     }
 }

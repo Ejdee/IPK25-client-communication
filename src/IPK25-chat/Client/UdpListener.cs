@@ -3,7 +3,7 @@ using IPK25_chat.Enums;
 
 namespace IPK25_chat.Client;
 
-public class UdpListener
+public class UdpListener : IDisposable, IListener
 {
    private UdpClient _udpClient;
    private HashSet<string> _processedMessageIds;
@@ -64,9 +64,14 @@ public class UdpListener
    public void StopListening()
    {
       _cancellationTokenSource.Cancel();
-      _udpClient.Close();
-      _udpClient.Dispose();
    } 
    
    private string GetMessageId(byte[] data) => $"{data[1]}{data[2]}";
+
+   public void Dispose()
+   {
+      _udpClient.Dispose();
+      _cancellationTokenSource.Dispose();
+      _udpTransfer.Dispose();
+   }
 }

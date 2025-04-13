@@ -2,16 +2,16 @@ using System.Net;
 using System.Net.Sockets;
 using IPK25_chat.Enums;
 using IPK25_chat.Models;
-using IPK25_chat.Protocol;
+using IPK25_chat.PayloadBuilders;
 
 namespace IPK25_chat.Client;
 
 public class UdpTransfer : IClient
 {
-    private readonly UdpProtocolPayloadBuilder _payloadBuilder;
+    private readonly IProtocolPayloadBuilder _payloadBuilder;
     private readonly UdpClientConfig _udpConfig;
     
-    public UdpTransfer(UdpClientConfig udpConfig, UdpProtocolPayloadBuilder payloadBuilder)
+    public UdpTransfer(UdpClientConfig udpConfig, IProtocolPayloadBuilder payloadBuilder)
     {
         _udpConfig = udpConfig;
         _payloadBuilder = payloadBuilder;
