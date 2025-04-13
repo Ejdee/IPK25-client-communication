@@ -4,12 +4,12 @@ using IPK25_chat.Models;
 
 namespace IPK25_chat.Protocol;
 
-public class ProtocolPayloadBuilder
+public class UdpProtocolPayloadBuilder
 {
     private int _id = 0;
     private readonly UserModel _user;
     
-    public ProtocolPayloadBuilder(UserModel user)
+    public UdpProtocolPayloadBuilder(UserModel user)
     {
         _user = user;
     }
@@ -78,6 +78,30 @@ public class ProtocolPayloadBuilder
         payload.AddRange(Encoding.ASCII.GetBytes(_user.DisplayName));
         payload.Add(0);
         
+        return payload.ToArray();
+    }
+
+    public byte[] CreateErrPacket(byte[]? content)
+    {
+        var payload = new List<byte>();
+        payload.Add((byte)PayloadType.ERR);
+        
+        ushort id = (ushort) _id++;
+        var idBytes = BitConverter.GetBytes(id);
+        if (BitConverter.IsLittleEndian) { Array.Reverse(idBytes); }
+        
+        payload.Add(idBytes[0]);
+        payload.Add(idBytes[1]);
+        
+        payload.AddRange(Encoding.ASCII.GetBytes(_user.DisplayName));
+        payload.Add(0);
+
+        if (content != null)
+        {
+            payload.AddRange(content);
+            payload.Add(0);
+        }
+
         return payload.ToArray();
     }
 }

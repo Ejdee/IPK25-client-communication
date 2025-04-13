@@ -94,9 +94,11 @@ public class MyFiniteStateMachineTests
         
         // Act
         var isValid = fsm.MessageValidInTheCurrentState(message, isServerMessage);
+        var shouldSendError = fsm.GetActionAvailable();
         
         // Assert
-        Assert.True(isValid);
+        Assert.False(isValid);
+        Assert.Equal(FsmAction.SendErrorMessage, shouldSendError);
     }
     
     [Fact]
@@ -106,13 +108,12 @@ public class MyFiniteStateMachineTests
         var fsm = new MyFiniteStateMachine();
         fsm.CurrentState = States.AUTH;
         var message = MessageType.AUTH;
-        var isServerMessage = false;
         
         // Act
-        var isValid = fsm.MessageValidInTheCurrentState(message, isServerMessage);
+        var isValid = fsm.MessageValidInTheCurrentState(message, false);
         
         // Assert
-        Assert.False(isValid);
+        Assert.True(isValid);
     }
     
     [Fact]
@@ -122,17 +123,18 @@ public class MyFiniteStateMachineTests
         var fsm = new MyFiniteStateMachine();
         fsm.CurrentState = States.AUTH;
         var messageServer = MessageType.NOTREPLY;
-        var message = MessageType.AUTH;
-        var isServerMessage = false;
         
         // Act
         
-        var preSend = fsm.MessageValidInTheCurrentState(messageServer, true);
-        var isValid = fsm.MessageValidInTheCurrentState(message, isServerMessage);
+        var result = fsm.MessageValidInTheCurrentState(messageServer, true);
+        if(fsm.TransitionAvailable())
+        {
+            fsm.PerformTransition();
+        }
         
         // Assert
-        Assert.True(preSend);
-        Assert.True(isValid);
+        Assert.True(result);
+        Assert.Equal(States.AUTH, fsm.CurrentState);
     }
     
     [Fact]
@@ -200,24 +202,6 @@ public class MyFiniteStateMachineTests
     }
 
     [Fact]
-    public void MsgValid_OpenStateValidMessageClient_ERRAfterServer_ANYREPLY()
-    {
-        // Arrange
-        var fsm = new MyFiniteStateMachine();
-        fsm.CurrentState = States.OPEN;
-        var serverMessage = MessageType.REPLY;
-        var clientMessage = MessageType.ERR;
-
-        // Act
-        var preSend = fsm.MessageValidInTheCurrentState(serverMessage, true);
-        var isValid = fsm.MessageValidInTheCurrentState(clientMessage, false);
-
-        // Assert
-        Assert.True(preSend);
-        Assert.True(isValid);
-    }
-
-    [Fact]
     public void TransitionAvailable_ValidTransition()
     {
         // Arrange
@@ -245,7 +229,7 @@ public class MyFiniteStateMachineTests
         var result = fsm.TransitionAvailable();
         
         // Assert
-        Assert.False(result);
+        Assert.True(result);
     }
     
     [Fact]
@@ -310,5 +294,57 @@ public class MyFiniteStateMachineTests
         
         // Assert
         Assert.Equal(States.JOIN, fsm.CurrentState);
+    }
+
+    [Fact]
+    public void SendError_OpenToEnd()
+    {
+        // Arrange
+        var fsm = new MyFiniteStateMachine();
+        fsm.CurrentState = States.OPEN;
+        var serverMessage = MessageType.REPLY;
+        
+        // Act
+        fsm.MessageValidInTheCurrentState(serverMessage, true);
+        var result = fsm.GetActionAvailable();
+        
+        // Assert
+        Assert.Equal(FsmAction.SendErrorMessage, result);
+    }
+
+    [Fact]
+    public void SendBye_FromOpenToEnd()
+    {
+        // Arrange
+        var fsm = new MyFiniteStateMachine();
+        fsm.CurrentState = States.OPEN;
+        var clientMessage = MessageType.BYE;
+        
+        // Act
+        fsm.MessageValidInTheCurrentState(clientMessage, false);
+        var result = fsm.GetActionAvailable();
+        fsm.PerformTransition();
+        
+        // Assert
+        Assert.Equal(FsmAction.PerformTransition, result);
+        Assert.Equal(States.END, fsm.CurrentState);
+    }
+
+    [Fact]
+    public void SendErr_FromJoinServer()
+    {
+        // Arrange
+        var fsm = new MyFiniteStateMachine();
+        fsm.CurrentState = States.JOIN;
+        var serverMessage = MessageType.ERR;
+        
+        // Act
+        fsm.MessageValidInTheCurrentState(serverMessage, true);
+        var result = fsm.GetActionAvailable();
+        fsm.PerformTransition();
+        
+        // Assert
+        Assert.Equal(FsmAction.PerformTransition, result);
+        Assert.Equal(States.END, fsm.CurrentState);
     }
 }

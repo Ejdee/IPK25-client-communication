@@ -1,3 +1,4 @@
+using System.Net.Sockets;
 using IPK25_chat.Client;
 using IPK25_chat.Enums;
 using IPK25_chat.Models;
@@ -20,7 +21,9 @@ public class MyFiniteStateMachine
             new(States.START, States.END, MessageType.ERR, MessageType.BLANK, false, true),
             new(States.START, States.END, MessageType.BLANK, MessageType.BYE, true, false),
             
-            new(States.AUTH, States.AUTH, MessageType.NOTREPLY, MessageType.AUTH, false, false),
+            //new(States.AUTH, States.AUTH, MessageType.NOTREPLY, MessageType.AUTH, false, false),
+            new(States.AUTH, States.AUTH, MessageType.NOTREPLY, MessageType.BLANK, false, true),
+            new(States.AUTH, States.AUTH, MessageType.BLANK, MessageType.AUTH, true, false),
             new(States.AUTH, States.OPEN, MessageType.REPLY, MessageType.BLANK, false, true),
             new(States.AUTH, States.END, MessageType.ERR, MessageType.BLANK, false, true),
             new(States.AUTH, States.END, MessageType.BYE, MessageType.BLANK, false, true),
@@ -58,6 +61,23 @@ public class MyFiniteStateMachine
         } 
     }
 
+    public FsmAction GetActionAvailable()
+    {
+        if (TransitionAvailable()) 
+            return FsmAction.PerformTransition;
+
+        var errAction = _currentAvailableTransitions
+            .Any(s => s.ServerObtained && s.ClientMessage == MessageType.ERR);
+
+        if (errAction)
+        {
+            _currentState = States.END;
+            return FsmAction.SendErrorMessage;
+        }
+
+        return FsmAction.NoAction;
+    }
+    
     public bool TransitionAvailable()
         => _currentAvailableTransitions.Any(t => t is { ServerObtained: true, ClientObtained: true });
 
@@ -102,6 +122,12 @@ public class MyFiniteStateMachine
             });
         }
 
+        // if we have a state where server sent a message and client should send an error,
+        // flag the validation as false 
+        if (_currentAvailableTransitions.Any(t => t is { ServerObtained: true, ClientMessage: MessageType.ERR }))
+            return false;
+         
+        
         return true;
     }
 
