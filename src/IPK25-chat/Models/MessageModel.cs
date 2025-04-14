@@ -32,31 +32,5 @@ public class MessageModel
         _messageType = messageType;
         _content = content;
     }
-    
-    public void Print()
-    {
-        Console.WriteLine($"MessageType: {MessageType}");
-    
-        if (Parameters != null && Parameters.Count > 0)
-        {
-            Console.WriteLine("Parameters:");
-            foreach (var param in Parameters)
-            {
-                Console.WriteLine($"  {param.Key}: {param.Value}");
-            }
-        }
-        else
-        {
-            Console.WriteLine("Parameters: None");
-        }
 
-        if (!string.IsNullOrEmpty(Content))
-        {
-            Console.WriteLine($"Content: {Content}");
-        }
-        else
-        {
-            Console.WriteLine("Content: None");
-        }    
-    }
 }

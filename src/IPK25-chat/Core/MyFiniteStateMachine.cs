@@ -141,7 +141,7 @@ public class MyFiniteStateMachine
         _currentState = transition[0].NextState;
         _currentAvailableTransitions = GetAvailableTransitions(_currentState); 
         
-        Console.WriteLine($"Performing transition to state: {_currentState}");
+        //Console.WriteLine($"Performing transition to state: {_currentState}");
     }
 
     private List<TransitionModel> GetAvailableTransitions(States state)

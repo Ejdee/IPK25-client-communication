@@ -22,7 +22,7 @@ public class UdpListener : IDisposable, IListener
 
    public void StartListening()
    {
-      Console.WriteLine("UDP Listener started...");
+      //Console.WriteLine("UDP Listener started...");
       Task.Run(async () =>
       {
          while (!_cancellationTokenSource.IsCancellationRequested)

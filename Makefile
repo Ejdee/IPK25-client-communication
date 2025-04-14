@@ -10,4 +10,4 @@ publish: build
     -p:PublishSingleFile=true
 
 clean:
-	@rm -rf bin/ obj/ ipk25chat ipk25chat.exe *.pdb
+	@rm -rf bin/ obj/ ipk25chat-client ipk25chat.exe *.pdb

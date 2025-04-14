@@ -28,12 +28,12 @@ public class UdpTransfer : IClient
             if (_udpConfig.ConfirmationTracker.WaitForConfirmation(id, _udpConfig.RetryDelay))
             {
                 _udpConfig.ConfirmationTracker.RemoveConfirmation(id);
-                Console.WriteLine("Message sent and acknowledged.");
+                //Console.WriteLine("Message sent and acknowledged.");
                 return;
             }
             else
             {
-                Console.WriteLine("Message not acknowledged, retrying...");
+                //Console.WriteLine("Message not acknowledged, retrying...");
             }
         }
     }
