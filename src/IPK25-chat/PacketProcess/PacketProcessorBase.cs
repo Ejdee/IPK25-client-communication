@@ -4,22 +4,22 @@ namespace IPK25_chat.PacketProcess;
 
 public abstract class PacketProcessorBase : IPacketProcessor
 {
-    protected readonly Dictionary<MessageType, Action<byte[]>> _packetHandlers = new();
+    protected readonly Dictionary<MessageType, Action<byte[]>> PacketHandlers = new();
     
     protected PacketProcessorBase()
     {
-        _packetHandlers[MessageType.CONFIRM] = ProcessConfirmationPacket;
-        _packetHandlers[MessageType.ERR] = ProcessErrorPacket;
-        _packetHandlers[MessageType.BYE] = ProcessByePacket;
-        _packetHandlers[MessageType.PING] = ProcessPingPacket;
-        _packetHandlers[MessageType.MSG] = ProcessMessagePacket;
-        _packetHandlers[MessageType.REPLY] = ProcessReplyPacket;
-        _packetHandlers[MessageType.NOTREPLY] = ProcessReplyPacket;
+        PacketHandlers[MessageType.CONFIRM] = ProcessConfirmationPacket;
+        PacketHandlers[MessageType.ERR] = ProcessErrorPacket;
+        PacketHandlers[MessageType.BYE] = ProcessByePacket;
+        PacketHandlers[MessageType.PING] = ProcessPingPacket;
+        PacketHandlers[MessageType.MSG] = ProcessMessagePacket;
+        PacketHandlers[MessageType.REPLY] = ProcessReplyPacket;
+        PacketHandlers[MessageType.NOTREPLY] = ProcessReplyPacket;
     }
     
     public void ProcessIncomingPacket(MessageType type, byte[] data)
     {
-        if(_packetHandlers.TryGetValue(type, out var handler))
+        if(PacketHandlers.TryGetValue(type, out var handler))
         {
             handler(data);
         }

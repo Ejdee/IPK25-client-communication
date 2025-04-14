@@ -45,7 +45,7 @@ public class MessageHandler
             {
                 _client.SendMessage(payload);
                 
-                if(type == MessageType.AUTH)
+                if(type == MessageType.AUTH || type == MessageType.JOIN)
                     StartAuthTimeout();
             }
 

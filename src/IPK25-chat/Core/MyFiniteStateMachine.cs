@@ -1,5 +1,3 @@
-using System.Net.Sockets;
-using IPK25_chat.Client;
 using IPK25_chat.Enums;
 using IPK25_chat.Models;
 

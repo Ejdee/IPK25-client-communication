@@ -1,5 +1,4 @@
 using IPK25_chat.Enums;
-using IPK25_chat.Logger;
 using IPK25_chat.Models;
 
 namespace IPK25_chat.Parsers;
@@ -7,13 +6,11 @@ namespace IPK25_chat.Parsers;
 public class MessageParser
 {
     private readonly InputValidator _inputValidator;
-    private readonly ResultLogger _logger;
     private readonly UserModel _user;
 
-    public MessageParser(InputValidator inputValidator, ResultLogger logger, UserModel user)
+    public MessageParser(InputValidator inputValidator, UserModel user)
     {
         _inputValidator = inputValidator;
-        _logger = logger;
         _user = user;
     }
 
@@ -27,7 +24,7 @@ public class MessageParser
             {
                 messageModel.MessageType = MessageType.AUTH;
 
-                string[] parameters = message.Split(" ").Skip(1).ToArray();
+                var parameters = message.Split(" ").Skip(1).ToArray();
                 if (parameters.Length == 3)
                 {
                     messageModel.Parameters = new Dictionary<string, string>
@@ -47,7 +44,7 @@ public class MessageParser
             if (message.StartsWith("/join"))
             {
                 messageModel.MessageType = MessageType.JOIN;
-                string[] parameters = message.Split(" ").Skip(1).ToArray();
+                var parameters = message.Split(" ").Skip(1).ToArray();
                 if (parameters.Length == 1)
                 {
                     messageModel.Parameters = new Dictionary<string, string>
@@ -63,7 +60,7 @@ public class MessageParser
             if (message.StartsWith("/rename"))
             {
                 messageModel.MessageType = MessageType.RENAME;
-                string[] parameters = message.Split(" ").Skip(1).ToArray();
+                var parameters = message.Split(" ").Skip(1).ToArray();
                 if (parameters.Length == 1)
                 {
                     messageModel.Parameters = new Dictionary<string, string>
@@ -81,13 +78,13 @@ public class MessageParser
             if (message.StartsWith("/help"))
             {
                 messageModel.MessageType = MessageType.HELP;
-                string[] parameters = message.Split(" ").Skip(1).ToArray();
+                var parameters = message.Split(" ").Skip(1).ToArray();
                 if (parameters.Length != 0)
                 {
                     return false;
                 }
 
-                _logger.PrintHelp();
+                PrintHelp();
                 return true;
             }
 
@@ -99,4 +96,23 @@ public class MessageParser
 
         return true;
     }
+
+    private static void PrintHelp()
+    {
+        Console.WriteLine(@"Supported Commands:
+/auth {Username} {Secret} {DisplayName}
+    Sends an AUTH message with the provided data to the server.
+    Correctly handles the Reply message and locally sets the DisplayName value (same as the /rename command).
+
+/join {ChannelID}
+    Sends a JOIN message with the specified channel name to the server.
+    Correctly handles the Reply message.
+
+/rename {DisplayName}
+    Locally changes the display name of the user.
+    The new display name will be sent with subsequent messages or selected commands.
+
+/help
+    Prints out the list of supported commands, their parameters, and descriptions.");
+        }
 }

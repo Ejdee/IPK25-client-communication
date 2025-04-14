@@ -4,49 +4,24 @@ using IPK25_chat.Models;
 
 namespace IPK25_chat.PayloadBuilders;
 
-public class TcpProtocolPayloadBuilder : IProtocolPayloadBuilder
+public class TcpProtocolPayloadBuilder : ProtocolPayloadBuilderBase, IProtocolPayloadBuilder
 {
     private readonly UserModel _user;
     
-    public TcpProtocolPayloadBuilder(UserModel user)
+    public TcpProtocolPayloadBuilder(UserModel user) : base(user)
     {
         _user = user;
     }
 
-    public byte[] GetPayloadFromMessage(MessageModel message)
+    public override byte[] CreatePayload(MessageType type, params string[] parameters)
     {
-        // Current implementation for UDP
-        switch (message.MessageType)
+        string payload = type switch
         {
-            case MessageType.AUTH:
-                return CreatePayload(message.MessageType, message.Parameters["username"], _user.DisplayName,
-                    message.Parameters["secret"]);
-            case MessageType.JOIN:
-                return CreatePayload(message.MessageType, message.Parameters["channelID"], _user.DisplayName);
-            case MessageType.MSG:
-                return CreatePayload(message.MessageType, _user.DisplayName, message.Content);
-            default:
-                throw new NotSupportedException();
-        }
-    }
-
-    public byte[] CreatePayload(MessageType type, params string[] parameters)
-    {
-        string payload;
-        switch (type)
-        {
-            case MessageType.AUTH:
-                payload = $"AUTH {parameters[0]} AS {parameters[1]} USING {parameters[2]}\r\n";
-                break;
-            case MessageType.JOIN:
-                payload = $"JOIN {parameters[0]} AS {parameters[1]}\r\n";
-                break;
-            case MessageType.MSG:
-                payload = $"MSG FROM {parameters[0]} IS {parameters[1]}\r\n";
-                break;
-            default:
-                throw new NotSupportedException();
-        }
+            MessageType.AUTH => $"AUTH {parameters[0]} AS {parameters[1]} USING {parameters[2]}\r\n",
+            MessageType.JOIN => $"JOIN {parameters[0]} AS {parameters[1]}\r\n",
+            MessageType.MSG => $"MSG FROM {parameters[0]} IS {parameters[1]}\r\n",
+            _ => throw new NotSupportedException()
+        };
         return Encoding.ASCII.GetBytes(payload);
     }
 

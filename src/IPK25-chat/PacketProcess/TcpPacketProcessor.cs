@@ -24,7 +24,6 @@ public class TcpPacketProcessor : PacketProcessorBase
     protected override void ProcessByePacket(byte[] data)
     {
         // No action required, program will terminate in FSM
-        return;
     }
 
     protected override void ProcessMessagePacket(byte[] data)
@@ -58,12 +57,10 @@ public class TcpPacketProcessor : PacketProcessorBase
     protected override void ProcessPingPacket(byte[] data)
     {
         // No action required for TCP
-        return;
     }
 
     protected override void ProcessConfirmationPacket(byte[] data)
     {
         // No action required for TCP
-        return;
     }
 }

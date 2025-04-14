@@ -4,32 +4,17 @@ using IPK25_chat.Models;
 
 namespace IPK25_chat.PayloadBuilders;
 
-public class UdpProtocolPayloadBuilder : IProtocolPayloadBuilder
+public class UdpProtocolPayloadBuilder : ProtocolPayloadBuilderBase, IProtocolPayloadBuilder
 {
     private int _id = 0;
     private readonly UserModel _user;
-    
-    public UdpProtocolPayloadBuilder(UserModel user)
+
+    public UdpProtocolPayloadBuilder(UserModel user) : base(user)
     {
         _user = user;
     }
 
-    public byte[] GetPayloadFromMessage(MessageModel message)
-    {
-        switch (message.MessageType)
-        {
-            case MessageType.AUTH:
-                return CreatePayload(message.MessageType, message.Parameters["username"], _user.DisplayName, message.Parameters["secret"]);
-            case MessageType.JOIN:
-                return CreatePayload(message.MessageType, message.Parameters["channelID"], _user.DisplayName);
-            case MessageType.MSG:
-                return CreatePayload(message.MessageType, _user.DisplayName, message.Content);
-            default:
-                throw new NotSupportedException();
-        }
-    }
-
-    public byte[] CreatePayload(MessageType type, params string[] parameters)
+    public override byte[] CreatePayload(MessageType type, params string[] parameters)
     {
         var payload = new List<byte>();
         

@@ -1,4 +1,3 @@
-using System.Net.Sockets;
 using System.Text;
 using IPK25_chat.Client;
 
@@ -37,7 +36,6 @@ public class UdpPacketProcessor : PacketProcessorBase
     protected override void ProcessByePacket(byte[] data)
     {
         // no action required, program will terminate in FSM
-        return;
     }
 
     protected override void ProcessPingPacket(byte[] data)
