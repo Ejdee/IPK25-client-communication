@@ -1,5 +1,4 @@
 using IPK25_chat.Enums;
-using IPK25_chat.Logger;
 using IPK25_chat.Models;
 using IPK25_chat.Parsers;
 
@@ -12,9 +11,8 @@ public class MessageParserTests
     public MessageParserTests()
     {
         var inputValidator = new InputValidator();
-        var logger = new ResultLogger();
         var user = new UserModel("testUser", "Test User");
-        _messageParser = new MessageParser(inputValidator, logger, user);
+        _messageParser = new MessageParser(inputValidator, user);
     }
 
     [Fact]
