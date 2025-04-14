@@ -4,10 +4,10 @@ namespace IPK25_chat.CLI
 {
     public class ArgumentOptions
     {
-        [Option('t', "transport", Required = false, HelpText = "Transport protocol to use (tcp/udp).")]
+        [Option('t', "transport", Required = true, HelpText = "Transport protocol to use (tcp/udp).")]
         public string Protocol { get; set; } = string.Empty;
         
-        [Option('s', "ip-or-hostname", Required = false, HelpText = "Server IP or hostname")]
+        [Option('s', "ip-or-hostname", Required = true, HelpText = "Server IP or hostname")]
         public string  ServerAddress { get; set; } = string.Empty;
         
         [Option('p', "port", Default=4567, Required = false, HelpText = "Server port.")]
