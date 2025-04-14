@@ -1,6 +1,6 @@
 using IPK25_chat.Enums;
+using IPK25_chat.InputParse;
 using IPK25_chat.Models;
-using IPK25_chat.Parsers;
 
 namespace IPK25_chat.Tests;
 

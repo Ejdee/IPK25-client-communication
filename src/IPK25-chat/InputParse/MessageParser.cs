@@ -1,7 +1,7 @@
 using IPK25_chat.Enums;
 using IPK25_chat.Models;
 
-namespace IPK25_chat.Parsers;
+namespace IPK25_chat.InputParse;
 
 public class MessageParser
 {

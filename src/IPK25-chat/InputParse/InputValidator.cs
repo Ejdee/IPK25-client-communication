@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace IPK25_chat.Parsers;
+namespace IPK25_chat.InputParse;
 
 public class InputValidator
 {
@@ -8,7 +8,7 @@ public class InputValidator
     {
         if (!Regex.IsMatch(input, regex))
         {
-            Console.WriteLine("Invalid input format.");   
+            Console.WriteLine("ERROR: Invalid input format.");   
         } 
         
         if (input.Length > maxLength)

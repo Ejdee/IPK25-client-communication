@@ -14,7 +14,7 @@ public class UdpValidator : IValidator
     private const int RefMessageIdLength = 2;
 
     private const int CommonHeaderLength = 3;
-    private const int ReplyHeaderLength = 5;
+    private const int ReplyHeaderLength = 6;
     
     public MessageType ValidateAndGetMsgType(byte[] data)
     {

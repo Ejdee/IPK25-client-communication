@@ -22,7 +22,7 @@ namespace IPK25_chat.CLI
 
         private static void HandleParseError(IEnumerable<Error> errs)
         {
-            Console.WriteLine("Parsing arguments failed.");
+            Console.Error.WriteLine("Parsing arguments failed.");
             var enumerable = errs as Error[] ?? errs.ToArray();
             for (int i = 0; i < enumerable.Count(); i++)
             {

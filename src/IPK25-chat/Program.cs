@@ -1,7 +1,7 @@
 ﻿
 using IPK25_chat.CLI;
 using IPK25_chat.Client;
-using IPK25_chat.Parsers;
+using IPK25_chat.InputParse;
 using IPK25_chat.PayloadBuilders;
 
 namespace IPK25_chat;
@@ -43,7 +43,7 @@ internal abstract class Program
         {
             if (!msgParser.ParseMessage(inputLine, out var model))
             {
-                Console.WriteLine("Invalid message format.");
+                Console.WriteLine("ERROR: Invalid message format.");
                 continue;
             }
 

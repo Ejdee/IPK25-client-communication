@@ -9,6 +9,7 @@ public class UdpListener : IDisposable, IListener
    private HashSet<string> _processedMessageIds;
    private CancellationTokenSource _cancellationTokenSource = new();
    private readonly UdpTransfer _udpTransfer;
+   private const int MinPacketLength = 3;
 
    public event Action<bool, byte[]>? OnMessageArrival; 
    
@@ -32,6 +33,12 @@ public class UdpListener : IDisposable, IListener
                var remote = result.RemoteEndPoint;
                
                var data = result.Buffer;
+               
+               if (data.Length < MinPacketLength)
+               {
+                  // Not an IPK25 packet
+                  continue;
+               }
 
                if (data[0] == (byte)PayloadType.REPLY)
                {
@@ -45,6 +52,9 @@ public class UdpListener : IDisposable, IListener
                   OnMessageArrival?.Invoke(true, data);
                   continue;
                }
+               
+               // send confirmation no matter if the message is invalid or not
+               _udpTransfer.SendConfirm(data[1], data[2]);
                
                var id = GetMessageId(data);
                if (_processedMessageIds.Add(id))

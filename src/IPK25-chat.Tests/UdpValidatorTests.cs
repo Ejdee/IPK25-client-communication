@@ -443,4 +443,22 @@ public class UdpValidatorTests
         // Assert
         Assert.Equal(expectedMessageType, result);
     }
+
+    [Fact]
+    public void ValidateAndGetMstTYpe_ValidReplyMsg()
+    {
+        // Arrange
+        var message = new byte[]
+        {
+            0x01, 0x00, 0x00, 0x01, 0x00, 0x00, 0x6A, 0x6F, 0x6A, 0x6F, 0x00
+        };
+        
+        var expectedMessageType = MessageType.REPLY;
+        
+        // Act
+        var result = _validator.ValidateAndGetMsgType(message);
+        
+        // Assert
+        Assert.Equal(expectedMessageType, result);
+    }
 }

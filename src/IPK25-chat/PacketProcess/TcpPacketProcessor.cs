@@ -13,12 +13,12 @@ public class TcpPacketProcessor : PacketProcessorBase
         var msgParts = Encoding.ASCII.GetString(data).Split(' ');
         if (msgParts.Length < ErrorMsgMinWords)
         {
-            Console.WriteLine($"Invalid error packet: {BitConverter.ToString(data)}");
+            Console.WriteLine($"ERROR: Invalid error packet: {BitConverter.ToString(data)}");
             return;
         }
 
         var errorContent = string.Join(' ', msgParts[4..]);
-        Console.WriteLine($"ERROR: {errorContent}");
+        Console.WriteLine($"ERROR FROM {msgParts[2]}: {errorContent}");
     }
 
     protected override void ProcessByePacket(byte[] data)
@@ -31,7 +31,7 @@ public class TcpPacketProcessor : PacketProcessorBase
         var msgParts = Encoding.ASCII.GetString(data).Split(' ');
         if (msgParts.Length < MessageMsgMinWords)
         {
-            Console.WriteLine($"Invalid message packet: {BitConverter.ToString(data)}");
+            Console.WriteLine($"ERROR: Invalid message packet: {BitConverter.ToString(data)}");
             return;
         }
 

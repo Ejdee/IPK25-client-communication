@@ -1,3 +1,4 @@
+using System.Text;
 using IPK25_chat.Client;
 using IPK25_chat.Core;
 using IPK25_chat.Enums;
@@ -29,6 +30,14 @@ public class MessageHandler
     public void HandleMessage(bool isIncoming, byte[] payload)
     {
         var type = _validator.ValidateAndGetMsgType(payload);
+        if (type == MessageType.INVALID)
+        {
+            Console.WriteLine($"ERROR: Invalid message: {BitConverter.ToString(payload)}");
+            _client.SendErrorMessage(Encoding.ASCII.GetBytes("Invalid message format"));
+            TerminateCommunication();
+            Environment.Exit(2);
+        } 
+        
         if (_fsm.MessageValidInTheCurrentState(type, isIncoming))
         {
             if (isIncoming)
@@ -52,7 +61,7 @@ public class MessageHandler
             switch (_fsm.GetActionAvailable())
             {
                 case FsmAction.SendErrorMessage:
-                    _client.SendErrorMessage();
+                    _client.SendErrorMessage(Encoding.ASCII.GetBytes("Unwanted action"));
                     break;
                 case FsmAction.PerformTransition:
                     _fsm.PerformTransition();
@@ -65,12 +74,12 @@ public class MessageHandler
         {
             if (_fsm.GetActionAvailable() == FsmAction.SendErrorMessage)
             {
-                _client.SendErrorMessage();
+                _client.SendErrorMessage(Encoding.ASCII.GetBytes("Unwanted action"));
             }
             else
             {
                 Console.WriteLine(
-                    $"Message not valid in the current state {_fsm.CurrentState}: {BitConverter.ToString(payload)}");
+                    $"ERROR: Message not valid in the current state {_fsm.CurrentState}: {BitConverter.ToString(payload)}");
             }
         }
         
@@ -98,7 +107,7 @@ public class MessageHandler
         {
             if (!t.IsCanceled)
             {
-                _client.SendErrorMessage();
+                _client.SendErrorMessage(Encoding.ASCII.GetBytes("Authentication timeout"));
                 TerminateCommunication();
             }
         }, TaskScheduler.Default);
