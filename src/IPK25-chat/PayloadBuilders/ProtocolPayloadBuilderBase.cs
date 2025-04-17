@@ -3,7 +3,7 @@ using IPK25_chat.Models;
 
 namespace IPK25_chat.PayloadBuilders;
 
-public abstract class ProtocolPayloadBuilderBase
+public abstract class ProtocolPayloadBuilderBase: IProtocolPayloadBuilder
 {
     private readonly UserModel _user;
 
@@ -39,4 +39,7 @@ public abstract class ProtocolPayloadBuilderBase
     }
 
     public abstract byte[] CreatePayload(MessageType type, params string[] parameters);
+    public abstract byte[] CreateByePacket();
+
+    public abstract byte[] CreateErrPacket(byte[]? content);
 }

@@ -1,4 +1,4 @@
-namespace IPK25_chat.Client;
+namespace IPK25_chat.Clients.Interfaces;
 
 public interface IListener
 {

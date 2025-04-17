@@ -1,7 +1,7 @@
 using IPK25_chat.Enums;
 using IPK25_chat.Models;
 
-namespace IPK25_chat.Core;
+namespace IPK25_chat.FSM;
 
 public class MyFiniteStateMachine
 {

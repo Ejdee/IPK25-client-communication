@@ -1,6 +1,6 @@
 ﻿
 using IPK25_chat.CLI;
-using IPK25_chat.Client;
+using IPK25_chat.Clients.Interfaces;
 using IPK25_chat.InputParse;
 using IPK25_chat.PayloadBuilders;
 

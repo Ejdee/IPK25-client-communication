@@ -1,5 +1,5 @@
 using System.Text;
-using TcpListener = IPK25_chat.Client.TcpListener;
+using TcpListener = IPK25_chat.Clients.TcpListener;
 
 namespace IPK25_chat.Tests;
 

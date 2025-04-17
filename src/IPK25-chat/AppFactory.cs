@@ -1,14 +1,15 @@
 using System.Net;
 using System.Net.Sockets;
 using IPK25_chat.CLI;
-using IPK25_chat.Client;
-using IPK25_chat.Core;
+using IPK25_chat.Clients;
+using IPK25_chat.Clients.Interfaces;
+using IPK25_chat.FSM;
 using IPK25_chat.InputParse;
 using IPK25_chat.Models;
 using IPK25_chat.PacketProcess;
 using IPK25_chat.PayloadBuilders;
 using IPK25_chat.Validators;
-using TcpListener = IPK25_chat.Client.TcpListener;
+using TcpListener = IPK25_chat.Clients.TcpListener;
 
 namespace IPK25_chat;
 

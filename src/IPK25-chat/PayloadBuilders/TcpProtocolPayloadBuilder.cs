@@ -4,7 +4,7 @@ using IPK25_chat.Models;
 
 namespace IPK25_chat.PayloadBuilders;
 
-public class TcpProtocolPayloadBuilder : ProtocolPayloadBuilderBase, IProtocolPayloadBuilder
+public class TcpProtocolPayloadBuilder : ProtocolPayloadBuilderBase
 {
     private readonly UserModel _user;
     
@@ -25,12 +25,12 @@ public class TcpProtocolPayloadBuilder : ProtocolPayloadBuilderBase, IProtocolPa
         return Encoding.ASCII.GetBytes(payload);
     }
 
-    public byte[] CreateByePacket()
+    public override byte[] CreateByePacket()
     {
         return Encoding.ASCII.GetBytes("BYE FROM " + _user.DisplayName + "\r\n");
     }
 
-    public byte[] CreateErrPacket(byte[]? content)
+    public override byte[] CreateErrPacket(byte[]? content)
     {
         string errorMessage = content != null ? Encoding.ASCII.GetString(content) : "";
         return Encoding.ASCII.GetBytes("ERR FROM " + _user.DisplayName + " IS " + errorMessage + "\r\n");

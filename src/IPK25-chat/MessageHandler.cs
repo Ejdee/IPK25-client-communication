@@ -1,7 +1,7 @@
 using System.Text;
-using IPK25_chat.Client;
-using IPK25_chat.Core;
+using IPK25_chat.Clients.Interfaces;
 using IPK25_chat.Enums;
+using IPK25_chat.FSM;
 using IPK25_chat.PacketProcess;
 using IPK25_chat.Validators;
 

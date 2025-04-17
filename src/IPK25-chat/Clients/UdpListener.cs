@@ -1,7 +1,8 @@
 using System.Net.Sockets;
+using IPK25_chat.Clients.Interfaces;
 using IPK25_chat.Enums;
 
-namespace IPK25_chat.Client;
+namespace IPK25_chat.Clients;
 
 public class UdpListener : IDisposable, IListener
 {

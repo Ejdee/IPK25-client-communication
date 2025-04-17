@@ -1,6 +1,7 @@
 using System.Net.Sockets;
+using IPK25_chat.Clients.Interfaces;
 
-namespace IPK25_chat.Client;
+namespace IPK25_chat.Clients;
 
 public class TcpListener : IDisposable, IListener
 {

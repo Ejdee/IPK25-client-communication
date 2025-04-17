@@ -4,7 +4,7 @@ using IPK25_chat.Models;
 
 namespace IPK25_chat.PayloadBuilders;
 
-public class UdpProtocolPayloadBuilder : ProtocolPayloadBuilderBase, IProtocolPayloadBuilder
+public class UdpProtocolPayloadBuilder : ProtocolPayloadBuilderBase
 {
     private int _id = 0;
     private readonly UserModel _user;
@@ -48,7 +48,7 @@ public class UdpProtocolPayloadBuilder : ProtocolPayloadBuilderBase, IProtocolPa
         };
     }
 
-    public byte[] CreateByePacket()
+    public override byte[] CreateByePacket()
     {
         var payload = new List<byte>();
         payload.Add((byte)PayloadType.BYE);
@@ -66,7 +66,7 @@ public class UdpProtocolPayloadBuilder : ProtocolPayloadBuilderBase, IProtocolPa
         return payload.ToArray();
     }
 
-    public byte[] CreateErrPacket(byte[]? content)
+    public override byte[] CreateErrPacket(byte[]? content)
     {
         var payload = new List<byte>();
         payload.Add((byte)PayloadType.ERR);

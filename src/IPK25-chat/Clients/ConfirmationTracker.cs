@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 
-namespace IPK25_chat.Client;
+namespace IPK25_chat.Clients;
 
 public class ConfirmationTracker
 {

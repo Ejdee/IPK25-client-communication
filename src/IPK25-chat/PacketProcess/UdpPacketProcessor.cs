@@ -1,5 +1,5 @@
 using System.Text;
-using IPK25_chat.Client;
+using IPK25_chat.Clients;
 
 namespace IPK25_chat.PacketProcess;
 
