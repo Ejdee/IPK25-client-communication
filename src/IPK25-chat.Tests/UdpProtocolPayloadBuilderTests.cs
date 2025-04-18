@@ -6,7 +6,7 @@ using Xunit;
 
 namespace IPK25_chat.Tests;
 
-public class ProtocolPayloadBuilderTests
+public class UdpProtocolPayloadBuilderTests
 {
     [Fact]
     public void GetPayloadFromMessage_ShouldCreateAuthPayload()
