@@ -17,6 +17,8 @@ public class MessageHandler
 
     private CancellationTokenSource? _authTimeout;
     private const int AuthTimeoutDuration = 5000;
+    
+    private int _terminationCode = 0;
 
     public MessageHandler(IPacketProcessor packetProcessor, MyFiniteStateMachine fsm, IListener listener, IClient client, IValidator validator)
     {
@@ -32,10 +34,10 @@ public class MessageHandler
         var type = _validator.ValidateAndGetMsgType(payload);
         if (type == MessageType.INVALID)
         {
+            _terminationCode = 1;
             Console.WriteLine($"ERROR: Invalid message: {BitConverter.ToString(payload)}");
             _client.SendErrorMessage(Encoding.ASCII.GetBytes("Invalid message format"));
-            TerminateCommunication();
-            Environment.Exit(2);
+            TerminateCommunication(_terminationCode);
         } 
         
         if (_fsm.MessageValidInTheCurrentState(type, isIncoming))
@@ -52,9 +54,17 @@ public class MessageHandler
             }
             else
             {
-                _client.SendMessage(payload);
-                
-                if(type == MessageType.AUTH || type == MessageType.JOIN)
+                try
+                {
+                    _client.SendMessage(payload);
+                }
+                catch (TimeoutException)
+                {
+                    Console.WriteLine("ERROR: Timeout while waiting for a confirmation.");
+                    TerminateCommunication(1);
+                }
+
+                if(type is MessageType.AUTH or MessageType.JOIN)
                     StartAuthTimeout();
             }
 
@@ -62,6 +72,7 @@ public class MessageHandler
             {
                 case FsmAction.SendErrorMessage:
                     _client.SendErrorMessage(Encoding.ASCII.GetBytes("Unwanted action"));
+                    _terminationCode = 1;
                     break;
                 case FsmAction.PerformTransition:
                     _fsm.PerformTransition();
@@ -75,6 +86,7 @@ public class MessageHandler
             if (_fsm.GetActionAvailable() == FsmAction.SendErrorMessage)
             {
                 _client.SendErrorMessage(Encoding.ASCII.GetBytes("Unwanted action"));
+                _terminationCode = 1;
             }
             else
             {
@@ -86,17 +98,16 @@ public class MessageHandler
         if (_fsm.CurrentState == States.END)
         {
             _authTimeout?.Cancel();
-            TerminateCommunication();
+            TerminateCommunication(_terminationCode);
         }
     }
 
-    private void TerminateCommunication()
+    private void TerminateCommunication(int exitCode)
     {
-        Console.WriteLine("Ending the session.");
         _listener.StopListening();
         _listener.Dispose();
         _client.Dispose();
-        Environment.Exit(0);
+        Environment.Exit(exitCode);
     }
 
     private void StartAuthTimeout()
@@ -108,7 +119,8 @@ public class MessageHandler
             if (!t.IsCanceled)
             {
                 _client.SendErrorMessage(Encoding.ASCII.GetBytes("Authentication timeout"));
-                TerminateCommunication();
+                Console.WriteLine("ERROR: timeout for REPLY message");
+                TerminateCommunication(1);
             }
         }, TaskScheduler.Default);
     }
