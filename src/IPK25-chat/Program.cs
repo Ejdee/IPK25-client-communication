@@ -1,6 +1,7 @@
 ﻿
 using IPK25_chat.CLI;
 using IPK25_chat.Clients.Interfaces;
+using IPK25_chat.Enums;
 using IPK25_chat.InputParse;
 using IPK25_chat.PayloadBuilders;
 
@@ -38,7 +39,6 @@ internal abstract class Program
         // set up CTRL + C handler
         HandleCancelKeyPress(payloadBuilder, msgHandler, listener, client); 
         
-        Console.WriteLine("Listening for user input...");
         while (Console.ReadLine() is { } inputLine)
         {
             if (!msgParser.ParseMessage(inputLine, out var model))
@@ -47,6 +47,9 @@ internal abstract class Program
                 continue;
             }
 
+            if (model.MessageType is MessageType.RENAME or MessageType.HELP)
+                continue;
+
             try
             {
                 var result = payloadBuilder.GetPayloadFromMessage(model);
@@ -54,11 +57,11 @@ internal abstract class Program
             }
             catch (ArgumentException e)
             {
-                Console.WriteLine(e.Message);
+                Console.WriteLine($"ERROR: {e.Message}");
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Error sending message: {e.Message}");
+                Console.WriteLine($"ERROR: sending message: {e.Message}");
             }
         }
         
@@ -69,7 +72,6 @@ internal abstract class Program
     private static void HandleGracefulTermination(IListener listener, IClient client,
         IProtocolPayloadBuilder payloadBuilder, MessageHandler msgHandler)
     {
-        Console.WriteLine("Gracefully terminating the application...");
         var byeMessage = payloadBuilder.CreateByePacket();
         msgHandler.HandleMessage(false, byeMessage);
         listener.StopListening();
