@@ -32,11 +32,9 @@ public class UdpTransfer : IClient
                 //Console.WriteLine("Message sent and acknowledged.");
                 return;
             }
-            else
-            {
-                //Console.WriteLine("Message not acknowledged, retrying...");
-            }
         }
+
+        throw new TimeoutException();
     }
 
     public void SendConfirm(byte idPart1, byte idPart2)
