@@ -14,7 +14,6 @@ public abstract class ProtocolPayloadBuilderBase: IProtocolPayloadBuilder
 
     public byte[] GetPayloadFromMessage(MessageModel message)
     {
-        // Current implementation for UDP
         switch (message.MessageType)
         {
             case MessageType.AUTH:

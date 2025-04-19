@@ -13,7 +13,7 @@ public class InputValidator
         
         if (input.Length > maxLength)
         {
-            Console.WriteLine($"Input exceeds maximum length of {maxLength} characters. Truncating to {maxLength} characters.");
+            Console.WriteLine($"ERROR: Input exceeds maximum length of {maxLength} characters. Truncating to {maxLength} characters.");
             return input.Substring(0, maxLength);
         }
 

@@ -25,7 +25,7 @@ public abstract class PacketProcessorBase : IPacketProcessor
         }
         else
         {
-            Console.WriteLine($"Unknown packet type: {data[0]}");
+            Console.WriteLine($"ERROR: Unknown packet type: {data[0]}");
         }
     }
     
