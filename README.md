@@ -55,7 +55,10 @@ As mentioned, the project follows the object-oriented design.
   - `UdpClientConfig.cs` - just an abstraction for the collection of UDP protocol configuration data (eg. retry count, timeout,...).
 - `PacketProcess` - responsible for processing the incoming messages. Consists of an interface that is implemented by the two transport protocols again.
 - `PayloadBuilders` - transforms the `MessageModel` into the **IPK25-CHAT** protocol format based on the type of transport protocol.
-- `Validators` - validates the incoming messages from the server. 
+- `Validators` - validates the incoming messages from the server.
+- `MessageHandler.cs` - all outgoing and incoming messages are processed here. It is driven by the **FSM**.
+- `AppFactory.cs` - initializes the program based on the protocol specified.
+- `Program.cs` - the main method of the program.
 
 ### Structure and usage between the components shown in the diagram
 - blue lines represents the usage
