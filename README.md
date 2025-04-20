@@ -282,39 +282,41 @@ Now that we have some kind of assurance of the delivery **and** successful messa
 Final testing was performed on the discord server and with the tests provided by one of the students. [7]
 
 #### Discord server
-These were the user inputs:
+These were the client outputs and corresponding wireshark captures:
 ```
 # UDP
 ----------------------
-➜  IPK25-chat git:(main) ✗ ./ipk25chat-client -s anton5.fit.vutbr.cz -t udp
-Listening for user input...
-/auth xbehoua00 e0****da-0a*****7a-876b-df********9b testUDP
+➜  IPK25-chat git:(main) ./ipk25chat-client -s anton5.fit.vutbr.cz -t udp
+/auth xbehoua00 e0345bda-0a71-4c7a-876b-df2495f0c29b testUDP
 Action Success: Authentication successful.
 Server: testUDP has joined `discord.general` via UDP.
-test message
-Gracefully terminating the application...
-Ending the session.
+/join discord.verified-1
+Server: testUDP has switched from `discord.general` to `discord.verified-1`.
+Action Success: Channel discord.verified-1 successfully joined.
+Server: testUDP has joined `discord.verified-1` via UDP.
+hello
+```
+![discord UDP](images/udp_discord_wireshark.png)
 
+
+```
 # TCP 
 -----------------------
-➜  IPK25-chat git:(main) ✗ ./ipk25chat-client -s anton5.fit.vutbr.cz -t tcp
-Listening for user input...
-/auth xbehoua00 e0****da-0a*****7a-876b-df********9b testTCP 
+➜  IPK25-chat git:(main) ./ipk25chat-client -s anton5.fit.vutbr.cz -t tcp
+/auth xbehoua00 e0345bda-0a71-4c7a-876b-df2495f0c29b testTCP
 Action Success: Authentication successful.
 Server: testTCP has joined `discord.general` via TCP.
-test message
-Gracefully terminating the application...
-Ending the session.
+Server: bruuher has joined `discord.general` via UDP.
+hello
+bruuher: l
 ```
-And these were the server outputs:
-![discord showcase](images/tcp_udp_discord.png)
-
+![discord TCP](images/tcp_discord_wireshark.png)
 
 #### Students made tests
 Finally, the tests developed by students were used to confirm the correctness of the implementation. Various edge cases and expected behaviour were tested. [7]
 The results were as follows:
 ```
-✅ 55/55 test cases passed
+✅ 58/58 test cases passed
 ```
 
 
