@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace IPK25_chat.PacketProcess;
 
@@ -51,7 +52,8 @@ public class TcpPacketProcessor : PacketProcessorBase
 
         var result = msgParts[1];
         var content = string.Join(' ', msgParts[3..]);
-        Console.WriteLine($"Action {(result == "OK" ? "Success" : "Failure")}: {content}");
+        var okRegex = new Regex(@"^[oO][kK]$");
+        Console.WriteLine($"Action {(okRegex.IsMatch(result) ? "Success" : "Failure")}: {content}");
     }
 
     protected override void ProcessPingPacket(byte[] data)
