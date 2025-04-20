@@ -19,7 +19,7 @@ public class TcpPacketProcessor : PacketProcessorBase
         }
 
         var errorContent = string.Join(' ', msgParts[4..]);
-        Console.WriteLine($"ERROR FROM {msgParts[2]}: {errorContent}");
+        Console.Write($"ERROR FROM {msgParts[2]}: {errorContent}");
     }
 
     protected override void ProcessByePacket(byte[] data)
@@ -38,7 +38,7 @@ public class TcpPacketProcessor : PacketProcessorBase
 
         var displayName = msgParts[2];
         var messageContent = string.Join(' ', msgParts[4..]);
-        Console.WriteLine($"{displayName}: {messageContent}");
+        Console.Write($"{displayName}: {messageContent}");
     }
 
     protected override void ProcessReplyPacket(byte[] data)
@@ -53,7 +53,7 @@ public class TcpPacketProcessor : PacketProcessorBase
         var result = msgParts[1];
         var content = string.Join(' ', msgParts[3..]);
         var okRegex = new Regex(@"^[oO][kK]$");
-        Console.WriteLine($"Action {(okRegex.IsMatch(result) ? "Success" : "Failure")}: {content}");
+        Console.Write($"Action {(okRegex.IsMatch(result) ? "Success" : "Failure")}: {content}");
     }
 
     protected override void ProcessPingPacket(byte[] data)
