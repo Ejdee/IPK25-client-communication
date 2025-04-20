@@ -271,7 +271,6 @@ Action Success: Hi, username! Successfully authenticated you as displayName. Cur
 now it should be valid
 /join channelID
 Action Success: Hi, displayName! Successfully joined you NOWHERE! This server has only one channel.
-
 another valid message
 Gracefully terminating the application...
 Ending the session.
@@ -302,9 +301,7 @@ Ending the session.
 Listening for user input...
 /auth xbehoua00 e0****da-0a*****7a-876b-df********9b testTCP 
 Action Success: Authentication successful.
-
 Server: testTCP has joined `discord.general` via TCP.
-
 test message
 Gracefully terminating the application...
 Ending the session.
