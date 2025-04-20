@@ -9,7 +9,31 @@ This project is implemented in C# using .NET 9.0 in an object-oriented manner.
 	
 ## Table of Contents
 
-// TODO: table of contents
+- [Usage](#usage)
+  - [Command-line arguments](#command-line-arguments)
+- [Project overview](#project-overview)
+  - [Allowed user commands](#allowed-user-commands)
+  - [User commands queue](#user-commands-queue)
+  - [Simplified flowchart diagram](#simplified-flowchart-diagram)
+- [Project structure](#project-structure)
+  - [Dependency diagram of core components](#structure-and-usage-between-the-components-shown-in-the-diagram)
+- [Transportation protocols](#transportation-protocols)
+- [TCP protocol](#tcp-protocol)
+  - [Implementation of TCP protocol](#implementation-of-tcp-protocol)
+    - [Sending](#sending)
+    - [Listening](#listening)
+    - [Message processing diagram](#message-processing-diagram)
+- [UDP protocol](#udp-protocol)
+  - [Implementation of UDP protocol](#implementation-of-udp-protocol)
+    - [Confirmation tracker](#confirmation-tracker)
+    - [Sending](#sending-1)
+    - [Listening](#listening-1)
+    - [Message processing diagram](#message-processing-diagram-1)
+- [Finite state machine](#fsm-finite-state-machine)
+  - [Implementation of FSM](#implementation-of-fsm)
+- [Testing](#testing)
+  - [Automated tests](#automated-tests)
+  - [Manual tests](#manual-tests)
 
 ### Usage
 
@@ -38,7 +62,11 @@ The project implements a client that communicates with a specified server using 
 - `<msg>` - sends a message to the server.
 - `/bye` - triggered by the user with `Ctrl+C` or `Ctrl+D` signalizing the end of the communication and **graceful** termination.
 
-Very simplified and abstract flow-chart diagram be shown as follows (doesn't show the communication with the server):
+### User commands queue
+As specified in the assignment, only one user action can be processed at a time. Because of this, the program is keeping the commands in a queue and processes them one by one after the current command is finished. This is done by starting a new thread for reading the queue and processing the commands while the main thread is loading the queue. **Race condition** is avoided with simple `lock` mechanism.
+
+### Simplified flowchart diagram
+Very simplified and abstract flowchart diagram of the **program** flow can be shown as follows (doesn't show the communication with the server):
 
 ![Flow chart](images/IPK25-chat.drawio(1).png)
 
@@ -127,8 +155,9 @@ For this purpose, the `ConcurrentDictionary<string, ManualResetEventSlim>` is us
 The sending works with the `UdpClient` class. Another obstacle in the UDP is that the first message is sent to `4567 or specified port` and the following communication is switched to dynamic port. This is resolved by the `UdpListener` that switches the server end-point when **REPLY** message is received.
 
 #### Listening
-Another obstacle may be **duplicate** message processing. Since it cannot be guaranteed that our confirmation message will be delivered, the server may send the same message again. This is resolved by keeping the processed message **IDs** in the `HashSet<string>`. So the message validation can be described with a diagram like this:
+Another obstacle may be **duplicate** message processing. Since it cannot be guaranteed that our confirmation message will be delivered, the server may send the same message again. This is resolved by keeping the processed message **IDs** in the `HashSet<string>`. 
 
+##### Message processing diagram
 ![udp message processing](images/UDP-message-processing.drawio.png)
 
 ## FSM (finite state machine)
@@ -329,7 +358,7 @@ The results were as follows:
 
 [4] CSHARPTUTORIAL.NET. C# ManualResetEventSlim. [online]. Available at: https://www.csharptutorial.net/csharp-concurrency/csharp-manualreseteventslim/.
 
-[5] OPENAI. ChatGPT. "Mutex trigger in .NET". [online]. Available at: https://chat.openai.com/chat.
+[5] OPENAI. ChatGPT. "Is there some built-in semaphore for waiting in .NET9?". [online]. Available at: https://chat.openai.com/chat.
 
 [6] PAVLÍK, vitapavlik.cz [online]. Available at: https://vitapavlik.cz/.
 

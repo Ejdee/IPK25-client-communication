@@ -64,6 +64,7 @@ public class MyFiniteStateMachine
         if (TransitionAvailable()) 
             return FsmAction.PerformTransition;
 
+        // error message has to be handled by the program, not the user input
         var errAction = _currentAvailableTransitions
             .Any(s => s.ServerObtained && s.ClientMessage == MessageType.ERR);
 

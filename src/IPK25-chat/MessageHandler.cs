@@ -2,7 +2,9 @@ using System.Text;
 using IPK25_chat.Clients.Interfaces;
 using IPK25_chat.Enums;
 using IPK25_chat.FSM;
+using IPK25_chat.InputParse;
 using IPK25_chat.PacketProcess;
+using IPK25_chat.PayloadBuilders;
 using IPK25_chat.Validators;
 
 namespace IPK25_chat;
@@ -19,6 +21,8 @@ public class MessageHandler
     private const int AuthTimeoutDuration = 5000;
     
     private int _terminationCode = 0;
+    private bool _waitingForReply = false;
+    private bool _processingUserCommand = false;
 
     public MessageHandler(IPacketProcessor packetProcessor, MyFiniteStateMachine fsm, IListener listener, IClient client, IValidator validator)
     {
@@ -31,6 +35,10 @@ public class MessageHandler
 
     public void HandleMessage(bool isIncoming, byte[] payload)
     {
+        // set the flag for processing user command so no other command can be processed
+        if (!isIncoming)
+            _processingUserCommand = true;
+        
         var type = _validator.ValidateAndGetMsgType(payload);
         if (type == MessageType.INVALID)
         {
@@ -100,6 +108,12 @@ public class MessageHandler
             _authTimeout?.Cancel();
             TerminateCommunication(_terminationCode);
         }
+        
+        // reset the flag for processing user command
+        if (!isIncoming)
+            _processingUserCommand = false;
+        if (type is MessageType.REPLY or MessageType.NOTREPLY && isIncoming)
+            _waitingForReply = false;
     }
 
     private void TerminateCommunication(int exitCode)
@@ -113,6 +127,7 @@ public class MessageHandler
     private void StartAuthTimeout()
     {
         _authTimeout = new CancellationTokenSource();
+        _waitingForReply = true;
         
         Task.Delay(AuthTimeoutDuration, _authTimeout.Token).ContinueWith(t =>
         {
@@ -123,5 +138,42 @@ public class MessageHandler
                 TerminateCommunication(1);
             }
         }, TaskScheduler.Default);
+    }
+    
+    public bool IsProcessingUserCommand()
+    {
+        return _processingUserCommand;
+    }
+    
+    public bool IsWaitingForReply()
+    {
+        return _waitingForReply;
+    }
+
+    public void ProcessUserCommand(string inputLine, IProtocolPayloadBuilder payloadBuilder,
+        MessageHandler msgHandler, MessageParser msgParser)
+    {
+        if (!msgParser.ParseMessage(inputLine, out var model))
+        {
+            Console.WriteLine("ERROR: Invalid message format.");
+            return;
+        }
+
+        if (model.MessageType is MessageType.RENAME or MessageType.HELP)
+            return;
+
+        try
+        {
+            var result = payloadBuilder.GetPayloadFromMessage(model);
+            msgHandler.HandleMessage(false, result);
+        }
+        catch (ArgumentException e)
+        {
+            Console.WriteLine($"ERROR: {e.Message}");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"ERROR: sending message: {e.Message}");
+        }    
     }
 }
