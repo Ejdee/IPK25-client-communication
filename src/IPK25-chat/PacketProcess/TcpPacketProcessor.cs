@@ -18,6 +18,8 @@ public class TcpPacketProcessor : PacketProcessorBase
             return;
         }
 
+        // since the processing is performed on valid messages, we can
+        // safely access the parts of the message hardcoded
         var errorContent = string.Join(' ', msgParts[4..]);
         Console.Write($"ERROR FROM {msgParts[2]}: {errorContent}");
     }

@@ -10,8 +10,6 @@ public class UdpValidator : IValidator
     private const int MessageLength = 60000;
     private const int SecretLength = 128; 
     private const int DisplayNameLength = 20;
-    private const int ReplyLength = 1;
-    private const int RefMessageIdLength = 2;
 
     private const int CommonHeaderLength = 3;
     private const int ReplyHeaderLength = 6;
